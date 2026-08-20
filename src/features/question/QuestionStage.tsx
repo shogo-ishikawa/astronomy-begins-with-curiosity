@@ -40,7 +40,9 @@ export function QuestionStage({
   return (
     <article className="stage">
       <p className="eyebrow">S02 研究課題</p>
-      <h1>関心を、データで調べられる問いへ</h1>
+      <h1 id="stage-title" tabIndex={-1}>
+        関心を、データで調べられる問いへ
+      </h1>
       <p>
         「宇宙の網目が気になる」は研究の出発点です。研究では、何を比べ、何が変わるかを含む形まで具体化します。最初から完璧な文章を書く必要はありません。一度に一つ、選択肢を組み合わせましょう。
       </p>
@@ -66,6 +68,11 @@ export function QuestionStage({
           choices={questions}
           value={q?.choiceId}
           onChange={(id) => update("choiceId", id)}
+          orderContext={{
+            seed: project.choiceOrderSeed,
+            themeId: project.themeId,
+            groupId: "s02-question",
+          }}
         />
       </section>
       {q?.choiceId && (
@@ -86,6 +93,11 @@ export function QuestionStage({
             choices={measurements}
             value={q.measurementId}
             onChange={(id) => update("measurementId", id)}
+            orderContext={{
+              seed: project.choiceOrderSeed,
+              themeId: project.themeId,
+              groupId: "s02-measurement",
+            }}
           />
         </section>
       )}
@@ -107,6 +119,12 @@ export function QuestionStage({
               choices={spaceFocus}
               value={q.spaceFocusId}
               onChange={(id) => update("spaceFocusId", id)}
+              orderContext={{
+                seed: project.choiceOrderSeed,
+                themeId: project.themeId,
+                groupId: "s02-space",
+              }}
+              pinToEnd={["uncertain"]}
             />
             {(q.timeFocusId === "uncertain" ||
               q.spaceFocusId === "uncertain") && (
@@ -156,6 +174,11 @@ export function QuestionStage({
             choices={reviewReasons}
             value={q.alignment.reasonId ?? undefined}
             onChange={(id) => update("questionReview", id)}
+            orderContext={{
+              seed: project.choiceOrderSeed,
+              themeId: project.themeId,
+              groupId: "s02-review-reason",
+            }}
           />
         </section>
       )}

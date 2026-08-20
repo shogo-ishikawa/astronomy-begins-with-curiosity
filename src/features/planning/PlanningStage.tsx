@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { ProjectState } from "../../domain/project";
+import { orderChoices } from "../../domain/choiceOrder";
 import {
   analyses,
   figures,
@@ -29,6 +30,7 @@ export function PlanningStage({
   project,
   update,
   complete,
+  review,
   back,
   onGlossary,
 }: {
@@ -38,6 +40,7 @@ export function PlanningStage({
     reason: ReasonKey | null,
   ) => void;
   complete: () => void;
+  review: () => void;
   back: () => void;
   onGlossary: (id: string) => void;
 }) {
@@ -72,7 +75,15 @@ export function PlanningStage({
     onChange: (id: string) => void,
   ) => (
     <div className="choice-grid">
-      {items.map((item) => (
+      {orderChoices(
+        items,
+        { kind: "stable-shuffle", orderVersion: 1, pinToEnd: ["unsure"] },
+        {
+          choiceOrderSeed: project.choiceOrderSeed,
+          themeId: project.themeId,
+          groupId: `s05-${name}`,
+        },
+      ).map((item) => (
         <label className="plan-choice" key={item.id}>
           <input
             type="radio"
@@ -91,7 +102,9 @@ export function PlanningStage({
   return (
     <article className="stage planning">
       <p className="eyebrow">S05 / 研究計画</p>
-      <h1>自分の研究計画案を組み立てる</h1>
+      <h1 id="stage-title" tabIndex={-1}>
+        自分の研究計画案を組み立てる
+      </h1>
       <p className="lead">
         値に唯一の正解はありません。何を明らかにしたいかと、各判断の長所・限界をつなげます。
       </p>
@@ -435,7 +448,12 @@ export function PlanningStage({
       {draft.completedAt && (
         <div className="notice">
           <strong>研究計画案を完成しました。</strong>
-          <p>次はMiraと研究計画をレビューします（Phase 1Eで実装予定）。</p>
+          <p>
+            次はMiraと、問い・測定量・計算条件・図のつながりをレビューします。
+          </p>
+          <button className="primary" onClick={review}>
+            Miraのレビューへ進む
+          </button>
         </div>
       )}
       <div className="actions">

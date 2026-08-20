@@ -3,6 +3,7 @@ import { methodContent } from "../../content/ja/method/content";
 import type { ProjectState } from "../../domain/project";
 import { isCorrect, understoodQuestionIds } from "./logic";
 import { PeriodicBoundaryDiagram } from "./PeriodicBoundaryDiagram";
+import { orderChoices } from "../../domain/choiceOrder";
 interface Props {
   project: ProjectState;
   onAnswer: (questionId: string, choiceId: string) => void;
@@ -28,7 +29,9 @@ export function MethodStage({
   return (
     <article className="stage method-stage">
       <p className="eyebrow">S04 · 方法の理解</p>
-      <h1>この方法で、何がわかる？</h1>
+      <h1 id="stage-title" tabIndex={-1}>
+        この方法で、何がわかる？
+      </h1>
       <p className="lead">
         研究計画を立てる前に、方法の強みと限界を五つの段階で確かめます。仮説の正誤はここでは判定しません。
       </p>
@@ -144,7 +147,19 @@ export function MethodStage({
               <p className="question-status">
                 {correct ? "✓ 理解済み" : "○ 確認中"}
               </p>
-              {q.choices.map((c) => (
+              {orderChoices(
+                q.choices,
+                {
+                  kind: "stable-shuffle",
+                  orderVersion: 1,
+                  pinToEnd: ["unsure"],
+                },
+                {
+                  choiceOrderSeed: project.choiceOrderSeed,
+                  themeId: project.themeId,
+                  groupId: `s04-${q.id}`,
+                },
+              ).map((c) => (
                 <label key={c.id}>
                   <input
                     type="radio"

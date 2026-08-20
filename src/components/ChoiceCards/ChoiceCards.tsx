@@ -7,15 +7,30 @@ export function ChoiceCards({
   value,
   onChange,
   label = "特に気になったこと",
+  orderContext,
+  pinToEnd = [],
 }: {
   choices: Choice[];
   value?: string;
   onChange: (id: string) => void;
   label?: string;
+  orderContext?: { seed: string; themeId: string; groupId: string };
+  pinToEnd?: string[];
 }) {
+  const ordered = orderContext
+    ? orderChoices(
+        choices,
+        { kind: "stable-shuffle", orderVersion: 1, pinToEnd },
+        {
+          choiceOrderSeed: orderContext.seed,
+          themeId: orderContext.themeId,
+          groupId: orderContext.groupId,
+        },
+      )
+    : choices;
   return (
     <div className="choice-cards" role="radiogroup" aria-label={label}>
-      {choices.map((choice, index) => (
+      {ordered.map((choice, index) => (
         <button
           type="button"
           role="radio"
@@ -36,7 +51,7 @@ export function ChoiceCards({
             const direction =
               event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
             const next =
-              choices[(index + direction + choices.length) % choices.length]!;
+              ordered[(index + direction + ordered.length) % ordered.length]!;
             onChange(next.id);
             requestAnimationFrame(() =>
               document
@@ -57,3 +72,4 @@ export function ChoiceCards({
     </div>
   );
 }
+import { orderChoices } from "../../domain/choiceOrder";
