@@ -35,6 +35,37 @@ button:disabled {
   cursor: wait;
   opacity: 0.65;
 }
+.stage section {
+  margin-top: 2.5rem;
+}
+.stage > h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+.review {
+  padding: 1rem;
+  border: 2px solid #e2a85c;
+  border-radius: 0.8rem;
+  background: #2b2115;
+}
+.notice,
+.summary,
+.logic-chain {
+  padding: 1rem;
+  border-left: 3px solid #ffca69;
+  background: #171d30;
+}
+.logic-chain dt {
+  color: #ffce76;
+  font-weight: 700;
+}
+.logic-chain dd {
+  margin: 0 0 0.8rem;
+}
+.stage textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+}
 :focus-visible {
   outline: 3px solid #ffcc70;
   outline-offset: 3px;

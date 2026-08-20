@@ -17,95 +17,121 @@ export const RESEARCH_STAGES = [
   "paper",
   "constellation",
 ] as const;
-
 const choiceRecordSchema = z.object({
   choiceId: z.string().min(1),
   note: z.string(),
   chosenAt: z.string().datetime(),
 });
-
+const reviewSchema = z.object({
+  status: z.enum(["aligned", "needs-review", "acknowledged"]),
+  acknowledged: z.boolean(),
+  reasonId: z.string().nullable(),
+});
+const researchQuestionSchema = z.object({
+  choiceId: z.string().min(1),
+  measurementId: z.string(),
+  timeFocusId: z.string(),
+  spaceFocusId: z.string(),
+  alignment: reviewSchema,
+  note: z.string(),
+  chosenAt: z.string().datetime(),
+});
+const hypothesisSchema = z.object({
+  choiceId: z.string().min(1),
+  note: z.string(),
+  chosenAt: z.string().datetime(),
+});
+const predictionSchema = z.object({
+  choiceId: z.string().min(1),
+  direction: z.enum(["increase", "decrease", "unchanged", "uncertain"]),
+  reasonId: z.string(),
+  alignment: reviewSchema,
+  note: z.string(),
+  chosenAt: z.string().datetime(),
+});
+const resultPackageSchema = z.object({
+  packageId: z.string(),
+  dataVersion: z.string(),
+  provenance: z.object({
+    kind: z.enum(["cws", "demo-fixture"]),
+    generator: z.string().min(1),
+    generatorVersion: z.string().min(1),
+    dataVersion: z.string().min(1),
+    createdAt: z.string().datetime(),
+    notes: z.string(),
+  }),
+});
 export const miraMessageRecordSchema = z.object({
-  messageId: z.string().min(1),
-  ruleId: z.string().min(1),
-  body: z.string().min(1),
+  messageId: z.string(),
+  ruleId: z.string(),
+  body: z.string(),
   createdAt: z.string().datetime(),
 });
 export type MiraMessageRecord = z.infer<typeof miraMessageRecordSchema>;
-
-const provenanceSchema = z.object({
-  kind: z.enum(["cws", "demo-fixture"]),
-  generator: z.string().min(1),
-  generatorVersion: z.string().min(1),
-  dataVersion: z.string().min(1),
-  createdAt: z.string().datetime(),
-  notes: z.string(),
-});
-
-const analysisRecipeSchema = z.object({
-  schemaVersion: z.literal(1),
-  density: z.object({
-    transform: z.literal("contrast"),
-    smoothing: z.object({
-      method: z.literal("none"),
-      sigmaCells: z.literal(0),
-    }),
-  }),
-  histogram: z.object({ bins: z.number().int().positive() }),
-  highDensity: z.object({ rhoOverMeanThreshold: z.number().positive() }),
-  figures: z.array(z.string()),
-});
-
-export const projectStateSchema = z.object({
-  schemaVersion: z.literal(1),
+const base = z.object({
+  schemaVersion: z.number(),
   projectId: z.string().uuid(),
   projectName: z.string().min(1).max(80),
-  appVersion: z.string().min(1),
-  contentVersion: z.string().min(1),
+  appVersion: z.string(),
+  contentVersion: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   currentStage: z.enum(RESEARCH_STAGES),
   themeId: z.literal("cosmic-web-growth"),
   motivation: choiceRecordSchema.nullable(),
-  researchQuestion: choiceRecordSchema.nullable(),
-  hypothesis: choiceRecordSchema.nullable(),
-  prediction: choiceRecordSchema.nullable(),
   planVersions: z.array(z.unknown()),
-  activePlanVersion: z.number().int().nonnegative().nullable(),
+  activePlanVersion: z.number().nullable(),
   pilot: z.unknown().nullable(),
-  resultPackage: z
-    .object({
-      packageId: z.string(),
-      dataVersion: z.string(),
-      provenance: provenanceSchema,
-    })
-    .nullable(),
+  resultPackage: resultPackageSchema.nullable(),
   qualityChecks: z.array(z.unknown()),
   analysisMode: z.enum(["gui", "python-assisted"]),
-  analysisRecipe: analysisRecipeSchema,
+  analysisRecipe: z.unknown(),
   analysisOutputs: z.array(z.unknown()),
   figures: z.array(z.unknown()),
-  interpretation: z.object({
-    result: choiceRecordSchema.nullable(),
-    interpretation: choiceRecordSchema.nullable(),
-    conclusion: choiceRecordSchema.nullable(),
-    limitations: z.array(choiceRecordSchema),
-  }),
+  interpretation: z.unknown(),
   paper: z.unknown().nullable(),
   glossaryViewed: z.array(z.string()),
   miraHistory: z.array(miraMessageRecordSchema),
   completedAt: z.string().datetime().nullable(),
 });
-
+export const projectStateSchema = base.extend({
+  schemaVersion: z.literal(2),
+  researchQuestion: researchQuestionSchema.nullable(),
+  hypothesis: hypothesisSchema.nullable(),
+  prediction: predictionSchema.nullable(),
+});
 export type ProjectState = z.infer<typeof projectStateSchema>;
+
+export function migrateProject(value: unknown): ProjectState {
+  const raw = base
+    .extend({
+      researchQuestion: z.unknown().nullable(),
+      hypothesis: z.unknown().nullable(),
+      prediction: z.unknown().nullable(),
+    })
+    .parse(value);
+  if (raw.schemaVersion > 2)
+    throw new Error(
+      "このプロジェクトは新しい版で作成されているため読み込めません。",
+    );
+  if (raw.schemaVersion === 2) return projectStateSchema.parse(raw);
+  return projectStateSchema.parse({
+    ...raw,
+    schemaVersion: 2,
+    researchQuestion: null,
+    hypothesis: null,
+    prediction: null,
+  });
+}
 
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
-    contentVersion: "0.1.0",
+    contentVersion: "0.1.1",
     createdAt: timestamp,
     updatedAt: timestamp,
     currentStage: "home",

@@ -17,6 +17,13 @@ import {
 } from "../content/ja/mira/rules";
 import { createEmptyProject, type ProjectState } from "../domain/project";
 import { Invitation } from "../features/invitation/Invitation";
+import { QuestionStage } from "../features/question/QuestionStage";
+import { HypothesisStage } from "../features/hypothesis/HypothesisStage";
+import {
+  hypothesisPredictionAligned,
+  predictionChoices,
+} from "../features/hypothesis/logic";
+import { questionMeasurementAligned } from "../features/question/logic";
 import { projectRepository } from "../persistence/projectRepository";
 
 type LoadState = "loading" | "ready" | "error";
@@ -26,6 +33,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.prediction) return "仮説と予想 完了";
+  if (project.researchQuestion) return "研究課題 作成中";
   if (project.motivation) return "研究への招待 完了";
   if (project.currentStage === "invitation") return "研究への招待";
   return "研究の準備";
@@ -98,7 +107,7 @@ function Home() {
         <p>{cosmicWebGrowthTheme.question}</p>
         <p className="phase-note">
           Phase
-          1Aでは「研究への招待」を体験し、気になったことを研究の出発点として保存できます。
+          1Bでは、関心から研究課題を組み立て、仮説とデータに現れる予想を記録できます。
         </p>
       </section>
       <section aria-labelledby="projects-title">
@@ -162,13 +171,24 @@ function ProjectWorkspace() {
       .then((result) => {
         if (!active) return;
         if (result) {
+          const safeStage = !result.motivation
+            ? result.currentStage === "home"
+              ? "home"
+              : "invitation"
+            : !result.researchQuestion && result.currentStage === "hypothesis"
+              ? "question"
+              : result.currentStage;
           const history = addMiraMessage(
             result.miraHistory,
             "introduction",
             INTRODUCTION,
             new Date(result.createdAt),
           );
-          const hydrated = { ...result, miraHistory: history };
+          const hydrated = {
+            ...result,
+            currentStage: safeStage,
+            miraHistory: history,
+          };
           setProject(hydrated);
           setNote(hydrated.motivation?.note ?? "");
           if (history !== result.miraHistory)
@@ -234,6 +254,139 @@ function ProjectWorkspace() {
     void persist(next);
     setSideTab("mira");
   }
+  function goStage(stage: "invitation" | "question" | "hypothesis") {
+    if (!project) return;
+    const guarded =
+      !project.motivation && stage !== "invitation" ? "invitation" : stage;
+    void persist({
+      ...project,
+      currentStage: guarded,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+  function updateQuestion(field: string, value: string) {
+    if (!project) return;
+    const now = new Date().toISOString();
+    const old = project.researchQuestion;
+    const draft = old ?? {
+      choiceId: "",
+      measurementId: "",
+      timeFocusId: "",
+      spaceFocusId: "",
+      alignment: {
+        status: "needs-review" as const,
+        acknowledged: false,
+        reasonId: null,
+      },
+      note: "",
+      chosenAt: now,
+    };
+    let q = { ...draft, [field]: value, chosenAt: now };
+    if (field === "questionReview")
+      q = {
+        ...q,
+        alignment: {
+          status: "acknowledged",
+          acknowledged: true,
+          reasonId: value,
+        },
+      };
+    else {
+      const ok =
+        q.choiceId &&
+        q.measurementId &&
+        questionMeasurementAligned(q.choiceId, q.measurementId);
+      q = {
+        ...q,
+        alignment: {
+          status: ok ? "aligned" : "needs-review",
+          acknowledged: false,
+          reasonId: null,
+        },
+      };
+    }
+    void persist({
+      ...project,
+      researchQuestion: q,
+      updatedAt: now,
+      miraHistory: addMiraMessage(
+        project.miraHistory,
+        `question-${field}-${value}`,
+        field === "measurementId"
+          ? `選んだ測定対象で何を直接比べられるか確認しました。次は時間と空間の焦点を一つずつ考えましょう。`
+          : `「${value}」という研究判断を記録しました。次に必要な一つの選択へ進みましょう。`,
+      ),
+    });
+    setSideTab("mira");
+  }
+  function updateHypothesis(field: string, value: string) {
+    if (!project?.researchQuestion) return;
+    const now = new Date().toISOString();
+    let h = project.hypothesis;
+    let p = project.prediction;
+    if (field === "hypothesis")
+      h = { choiceId: value, note: h?.note ?? "", chosenAt: now };
+    if (field === "prediction") {
+      const x = predictionChoices(
+        project.researchQuestion.measurementId,
+        project.researchQuestion.choiceId,
+      ).find((x) => x.id === value)!;
+      p = {
+        choiceId: value,
+        direction: x.direction,
+        reasonId: p?.reasonId ?? "",
+        alignment: {
+          status:
+            h && hypothesisPredictionAligned(h.choiceId, x.direction)
+              ? "aligned"
+              : "needs-review",
+          acknowledged: false,
+          reasonId: null,
+        },
+        note: p?.note ?? "",
+        chosenAt: now,
+      };
+    }
+    if (field === "predictionReason" && p)
+      p = { ...p, reasonId: value, chosenAt: now };
+    if (field === "predictionNote" && p)
+      p = { ...p, note: value, chosenAt: now };
+    if (field === "predictionReview" && p)
+      p = {
+        ...p,
+        alignment: {
+          status: "acknowledged",
+          acknowledged: true,
+          reasonId: value,
+        },
+        chosenAt: now,
+      };
+    if (h && p && field === "hypothesis")
+      p = {
+        ...p,
+        alignment: {
+          status: hypothesisPredictionAligned(h.choiceId, p.direction)
+            ? "aligned"
+            : "needs-review",
+          acknowledged: false,
+          reasonId: null,
+        },
+      };
+    void persist({
+      ...project,
+      hypothesis: h,
+      prediction: p,
+      updatedAt: now,
+      miraHistory: addMiraMessage(
+        project.miraHistory,
+        `hypothesis-${field}-${value}`,
+        value.includes("uncertain") || value === "uncertain"
+          ? "「まだわからない」を記録しました。判断を保留しても不利益はありません。次に、データなら何が見えるかを一つ考えましょう。"
+          : "仮説と予想の選択を記録しました。正誤は判定せず、両者が同じ方向かを確認します。",
+      ),
+    });
+    setSideTab("mira");
+  }
   function updateNote(value: string) {
     setNote(value);
     if (!project?.motivation) return;
@@ -286,6 +439,21 @@ function ProjectWorkspace() {
                 研究への招待を始める
               </button>
             </div>
+          ) : project.currentStage === "question" ? (
+            <QuestionStage
+              project={project}
+              update={updateQuestion}
+              back={() => goStage("invitation")}
+              next={() => goStage("hypothesis")}
+              onGlossary={openGlossary}
+            />
+          ) : project.currentStage === "hypothesis" ? (
+            <HypothesisStage
+              project={project}
+              update={updateHypothesis}
+              back={() => goStage("question")}
+              onGlossary={openGlossary}
+            />
           ) : (
             <Invitation
               project={project}
@@ -293,6 +461,7 @@ function ProjectWorkspace() {
               onChoice={chooseMotivation}
               note={note}
               onNote={updateNote}
+              onNext={() => goStage("question")}
             />
           )}
         </section>
@@ -358,7 +527,7 @@ export function App() {
             ABCs <span>Astronomy Begins with Curiosity</span>
           </a>
           <p className="prototype-status">
-            開発中のプロトタイプ — v0.1-alpha / Phase 1A
+            開発中のプロトタイプ — v0.1-alpha / Phase 1B
           </p>
         </div>
       </header>

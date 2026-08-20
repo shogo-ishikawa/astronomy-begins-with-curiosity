@@ -6,17 +6,15 @@ export function ChoiceCards({
   choices,
   value,
   onChange,
+  label = "特に気になったこと",
 }: {
   choices: Choice[];
   value?: string;
   onChange: (id: string) => void;
+  label?: string;
 }) {
   return (
-    <div
-      className="choice-cards"
-      role="radiogroup"
-      aria-label="特に気になったこと"
-    >
+    <div className="choice-cards" role="radiogroup" aria-label={label}>
       {choices.map((choice, index) => (
         <button
           type="button"

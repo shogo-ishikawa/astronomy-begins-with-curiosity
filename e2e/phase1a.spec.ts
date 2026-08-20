@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("研究への招待の選択とメモを再読込後に復元する", async ({ page }) => {
   await page.goto("./");
   await expect(
-    page.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1A"),
+    page.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1B"),
   ).toBeVisible();
   await page.getByRole("button", { name: "新しい研究を始める" }).click();
   await expect(page.getByText(/私はMira/)).toBeVisible();

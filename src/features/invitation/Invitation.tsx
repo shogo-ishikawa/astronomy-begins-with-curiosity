@@ -11,12 +11,14 @@ export function Invitation({
   onChoice,
   note,
   onNote,
+  onNext,
 }: {
   project: ProjectState;
   onGlossary: (id: string) => void;
   onChoice: (id: string) => void;
   note: string;
   onNote: (value: string) => void;
+  onNext: () => void;
 }) {
   const paragraph = (text: string) => (
     <RichText text={text} onGlossary={onGlossary} />
@@ -69,9 +71,11 @@ export function Invitation({
           <div className="completion-notice" role="status">
             <strong>研究への招待を完了しました。</strong>
             <p>
-              次は、この関心を測定できる研究課題へ変えていきます。Phase
-              1Aではここまでです。
+              Miraは選んだ関心を受け止めました。関心を、データで調べられる問いへ変えてみましょう。
             </p>
+            <button className="primary" onClick={onNext}>
+              研究課題を考える
+            </button>
           </div>
         )}
       </section>
