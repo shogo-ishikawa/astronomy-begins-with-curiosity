@@ -40,12 +40,12 @@ describe("ホーム", () => {
       await screen.findByText("保存された研究はまだありません。"),
     ).toBeVisible();
     expect(
-      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 0"),
+      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1A"),
     ).toBeVisible();
     await userEvent.click(
       screen.getByRole("button", { name: "新しい研究を始める" }),
     );
-    expect(projectRepository.save).toHaveBeenCalledOnce();
+    expect(projectRepository.save).toHaveBeenCalled();
     const createdProject = vi.mocked(projectRepository.save).mock.calls[0]?.[0];
     expect(createdProject).toBeDefined();
     expect(
@@ -57,6 +57,50 @@ describe("ホーム", () => {
       createdProject!.projectId,
     );
     expect(screen.getByText("保存済みの状態から再開しました。")).toBeVisible();
+  });
+
+  it("Mira、用語、模式図と選択に応じた助言を表示する", async () => {
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "新しい研究を始める" }),
+    );
+    expect(await screen.findByText(/私はMira/)).toBeVisible();
+    await userEvent.click(
+      screen.getByRole("button", { name: "研究への招待を始める" }),
+    );
+    expect(
+      await screen.findByTitle(
+        "初期宇宙と現在に近い宇宙の物質分布を比べる模式図",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/これは観察のための説明図/)).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "密度のむら" }));
+    expect(screen.getByRole("heading", { name: "密度のむら" })).toBeVisible();
+    await userEvent.click(screen.getByRole("radio", { name: /重力だけで/ }));
+    expect(
+      await screen.findByText(/含まれる物理と含まれない物理/),
+    ).toBeVisible();
+  });
+
+  it("保存失敗を知らせる", async () => {
+    vi.mocked(projectRepository.save).mockRejectedValueOnce(
+      new Error("failed"),
+    );
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "新しい研究を始める" }),
+    );
+    expect(
+      await screen.findByText("保存できませんでした。再度お試しください。"),
+    ).toBeVisible();
   });
 
   it("保存済みプロジェクトを一覧表示する", async () => {

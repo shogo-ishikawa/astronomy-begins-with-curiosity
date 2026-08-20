@@ -24,6 +24,14 @@ const choiceRecordSchema = z.object({
   chosenAt: z.string().datetime(),
 });
 
+export const miraMessageRecordSchema = z.object({
+  messageId: z.string().min(1),
+  ruleId: z.string().min(1),
+  body: z.string().min(1),
+  createdAt: z.string().datetime(),
+});
+export type MiraMessageRecord = z.infer<typeof miraMessageRecordSchema>;
+
 const provenanceSchema = z.object({
   kind: z.enum(["cws", "demo-fixture"]),
   generator: z.string().min(1),
@@ -84,7 +92,7 @@ export const projectStateSchema = z.object({
   }),
   paper: z.unknown().nullable(),
   glossaryViewed: z.array(z.string()),
-  miraHistory: z.array(z.unknown()),
+  miraHistory: z.array(miraMessageRecordSchema),
   completedAt: z.string().datetime().nullable(),
 });
 

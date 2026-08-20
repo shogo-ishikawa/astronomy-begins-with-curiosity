@@ -10,9 +10,9 @@ ABCsは、天文学の知識を前提としない学部生が、実際の研究�
 
 ## 現在の状態
 
-🚧 **開発中のプロトタイプ — v0.1-alpha / Phase 0**
+🚧 **開発中のプロトタイプ — v0.1-alpha / Phase 1A**
 
-最初の研究テーマとして、宇宙論的N体シミュレーションを用いた「宇宙の網目はどのように成長するのか」を実装する予定です。
+最初の研究テーマ「宇宙の網目はどう育つ？」について、Miraと用語解説の支援を受けながら模式図を観察し、気になった点を選んで保存する「研究への招待」を利用できます。研究課題、仮説、計画、データ、解析はPhase 1B以降で実装します。
 
 現在は開発中のため、表示内容やブラウザ内の保存形式が今後変更される可能性があります。
 
@@ -35,4 +35,4 @@ npm ci
 npm run dev
 ```
 
-品質確認は `npm run format:check`、`npm run lint`、`npm run typecheck`、`npm test`、`npm run build` で実行できます。Phase 0のブラウザフローは、PlaywrightのChromiumを導入後に `npm run test:e2e` で確認できます。
+品質確認は `npm run format:check`、`npm run lint`、`npm run typecheck`、`npm test`、`npm run build` で実行できます。研究への招待のブラウザフローは、PlaywrightのChromiumを導入後に `npm run test:e2e` で確認できます。
