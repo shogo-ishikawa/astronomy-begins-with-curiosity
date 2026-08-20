@@ -2,6 +2,7 @@ import { z } from "zod";
 import { emptyResearchPlanDraft } from "../features/planning/logic";
 import { legacyChoiceOrderSeed } from "./choiceOrder";
 import type { PlanReviewRecord, PlanVersion } from "../features/review/logic";
+import type { PilotRecord } from "../features/pilot/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -151,7 +152,7 @@ const researchPlanDraftSchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(5),
+  schemaVersion: z.literal(6),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
@@ -162,6 +163,7 @@ export const projectStateSchema = base.extend({
   activePlanVersionId: z.string().nullable(),
   planReviewCompletedAt: z.string().datetime().nullable(),
   planChangeReasonId: z.string().nullable(),
+  pilot: z.unknown().nullable(),
 });
 export type ProjectState = Omit<
   z.infer<typeof projectStateSchema>,
@@ -169,6 +171,7 @@ export type ProjectState = Omit<
 > & {
   planReviewHistory: PlanReviewRecord[];
   planVersions: PlanVersion[];
+  pilot: PilotRecord | null;
 };
 
 export function migrateProject(value: unknown): ProjectState {
@@ -186,28 +189,34 @@ export function migrateProject(value: unknown): ProjectState {
       planChangeReasonId: z.unknown().optional(),
     })
     .parse(value);
-  if (raw.schemaVersion > 5)
+  if (raw.schemaVersion > 6)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 5)
+  if (raw.schemaVersion === 6)
     return projectStateSchema.parse(raw) as ProjectState;
   const migrated = projectStateSchema.parse({
     ...raw,
-    schemaVersion: 5,
+    schemaVersion: 6,
     researchQuestion: raw.schemaVersion < 2 ? null : raw.researchQuestion,
     hypothesis: raw.schemaVersion < 2 ? null : raw.hypothesis,
     prediction: raw.schemaVersion < 2 ? null : raw.prediction,
-    methodUnderstanding: {
-      contentId: "method-understanding-v1",
-      answers: [],
-      completedAt: null,
-    },
+    methodUnderstanding:
+      raw.schemaVersion >= 3 && raw.methodUnderstanding
+        ? raw.methodUnderstanding
+        : {
+            contentId: "method-understanding-v1",
+            answers: [],
+            completedAt: null,
+          },
     researchPlanDraft:
       raw.schemaVersion >= 4 && raw.researchPlanDraft
         ? raw.researchPlanDraft
         : emptyResearchPlanDraft(),
-    choiceOrderSeed: legacyChoiceOrderSeed(raw.projectId),
+    choiceOrderSeed:
+      typeof raw.choiceOrderSeed === "string"
+        ? raw.choiceOrderSeed
+        : legacyChoiceOrderSeed(raw.projectId),
     planReviewHistory: Array.isArray(raw.planReviewHistory)
       ? raw.planReviewHistory
       : [],
@@ -215,8 +224,14 @@ export function migrateProject(value: unknown): ProjectState {
       typeof raw.activePlanVersionId === "string"
         ? raw.activePlanVersionId
         : null,
-    planReviewCompletedAt: null,
-    planChangeReasonId: null,
+    planReviewCompletedAt:
+      typeof raw.planReviewCompletedAt === "string"
+        ? raw.planReviewCompletedAt
+        : null,
+    planChangeReasonId:
+      typeof raw.planChangeReasonId === "string"
+        ? raw.planChangeReasonId
+        : null,
   });
   return migrated as ProjectState;
 }
@@ -224,11 +239,11 @@ export function migrateProject(value: unknown): ProjectState {
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
-    contentVersion: "0.1.3",
+    contentVersion: "0.1.4",
     createdAt: timestamp,
     updatedAt: timestamp,
     currentStage: "home",
