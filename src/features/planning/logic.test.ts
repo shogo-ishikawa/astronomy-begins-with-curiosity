@@ -73,4 +73,15 @@ describe("研究計画の純粋ロジック", () => {
     expect(next.reasonIds.boxSize).toBe("evidence");
     expect(next.completedAt).toBeNull();
   });
+  it("理由だけの変更を保持する", () => {
+    const old = emptyResearchPlanDraft();
+    const reasonIds = { ...old.reasonIds, boxSize: "tradeoff" as const };
+    const next = updateDraft(
+      old,
+      { reasonIds },
+      null,
+      "2026-08-21T00:00:00.000Z",
+    );
+    expect(next.reasonIds.boxSize).toBe("tradeoff");
+  });
 });

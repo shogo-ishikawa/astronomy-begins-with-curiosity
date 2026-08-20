@@ -13,6 +13,7 @@ import {
   subjectHash,
   type PlanReviewRecord,
 } from "./logic";
+import { formatSnapshotId } from "../../domain/snapshotTime";
 
 const states = {
   "research-ready": "研究を進められる整合性があります",
@@ -33,6 +34,7 @@ export function PlanReviewStage({
   commit,
   revise,
   setChangeReason,
+  onGlossary,
 }: {
   project: ProjectState;
   requestReview: (limitations: string[]) => void;
@@ -40,6 +42,7 @@ export function PlanReviewStage({
   commit: () => void;
   revise: () => void;
   setChangeReason: (reasonId: string) => void;
+  onGlossary: (id: string) => void;
 }) {
   const [limitations, setLimitations] = useState<string[]>([]);
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -102,11 +105,34 @@ export function PlanReviewStage({
           </dd>
           <dt>計算条件</dt>
           <dd>
-            L = {project.researchPlanDraft.boxSizeMpcOverH} h⁻¹ Mpc、Nside ={" "}
-            {project.researchPlanDraft.particleSide}
+            <button
+              className="term-link"
+              onClick={() => onGlossary("comoving-distance")}
+            >
+              L
+            </button>{" "}
+            = {project.researchPlanDraft.boxSizeMpcOverH} h⁻¹ Mpc、
+            <button
+              className="term-link"
+              onClick={() => onGlossary("particle-side")}
+            >
+              N<sub>side</sub>
+            </button>{" "}
+            = {project.researchPlanDraft.particleSide}
           </dd>
           <dt>スナップショット</dt>
-          <dd>{project.researchPlanDraft.snapshotIds.join("、")}</dd>
+          <dd>
+            <button
+              className="term-link"
+              onClick={() => onGlossary("snapshot")}
+            >
+              時刻
+            </button>
+            :{" "}
+            {project.researchPlanDraft.snapshotIds
+              .map(formatSnapshotId)
+              .join("、")}
+          </dd>
           <dt>主解析・主要図</dt>
           <dd>
             {project.researchPlanDraft.primaryAnalysis}／

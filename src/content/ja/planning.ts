@@ -1,3 +1,5 @@
+import { formatSnapshotTime, snapshotTimes } from "../../domain/snapshotTime";
+
 export const priorities = [
   {
     id: "large-web",
@@ -18,16 +20,33 @@ export const priorities = [
     limit: "どちらか一方を最大限に優先する計画ではありません。",
   },
 ] as const;
-export const snapshots = [
-  { id: "initial", label: "計算開始時（開始赤方偏移は実行時に確定）" },
-  {
-    id: "z10",
-    label: "z = 10（初期の銀河が存在し始める時代に対応する暗黒物質分布）",
-  },
-  { id: "z5", label: "z = 5" },
-  { id: "z2", label: "z = 2" },
-  { id: "z1", label: "z = 1" },
-  { id: "z0", label: "z = 0（現在）" },
+export const snapshots = snapshotTimes.map((item) => ({
+  id: item.id as "initial" | "z10" | "z5" | "z2" | "z1" | "z0",
+  label: formatSnapshotTime(item),
+}));
+
+export const planningExplanations = {
+  boxAndParticles:
+    "[[comoving-distance|共動座標・共動距離]]は宇宙全体の膨張を取り除いて位置を表します。箱の一辺は宇宙論で使う距離の単位[[h-inverse-mpc|h⁻¹ Mpc]]で示します。現在のDEMOでは h を確定していないため、通常のMpcへ勝手に換算しません。",
+  particleSide:
+    "[[particle-side|一辺あたりの粒子数]] N_side は立方体の一辺方向に置く[[computational-particle|計算粒子]]の数で、全粒子数は N_p = N_side³ です。一辺を2倍にすると全粒子数は8倍になります。二次元画像の画素数や表示グリッドではなく、増やしてもガスや星形成の物理は追加されません。",
+  snapshots:
+    "[[snapshot|スナップショット]]は写真ではなく、シミュレーションのある時点の計算状態を保存したデータです。内部では多数の細かい時間刻みで計算し、その一部だけを保存します。[[redshift|赤方偏移]]は z = 0 が現在で、大きいほど過去です。[[scale-factor|スケール因子]]は現在を a = 1 とした宇宙膨張の尺度で、a = 1 / (1 + z) です。赤方偏移は経過年数そのものではなく、宇宙年齢への変換は宇宙論モデルに依存します。スケール因子は宇宙年齢の割合でも、個々の天体の大きさでもありません。",
+  densityField:
+    "[[density-field|密度場]]は空間の各場所に物質密度を割り当てたものです。計算粒子そのものとは別で、粒子を格子へ数え上げたり平滑化したりして作ります。三次元密度場と[[projected-density|二次元投影密度]]も区別します。[[density-ratio|ρ/ρ̄]]は平均密度との比で無次元、密度コントラストは δ = ρ/ρ̄ − 1 です。",
+} as const;
+
+export const planningGlossaryIds = [
+  "comoving-distance",
+  "h-inverse-mpc",
+  "particle-side",
+  "computational-particle",
+  "snapshot",
+  "redshift",
+  "scale-factor",
+  "density-field",
+  "projected-density",
+  "density-ratio",
 ] as const;
 export const analyses = [
   {

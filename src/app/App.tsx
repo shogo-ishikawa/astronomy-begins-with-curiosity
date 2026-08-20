@@ -724,6 +724,7 @@ function ProjectWorkspace() {
           ) : project.currentStage === "plan-review" ? (
             <PlanReviewStage
               project={project}
+              onGlossary={openGlossary}
               requestReview={requestReview}
               updateReview={updateReview}
               commit={commitReview}

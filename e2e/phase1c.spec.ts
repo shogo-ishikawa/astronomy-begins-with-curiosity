@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import type { ProjectState } from "../src/domain/project";
 async function seedMethodProject(page: Page) {
   await page.goto("./");
   await page.getByRole("button", { name: "新しい研究を始める" }).click();
@@ -85,4 +86,74 @@ test("図の用語凡例と模式図注記を表示する", async ({ page }) => 
   await expect(page.getByText(/形態を理解するための模式図/)).toBeVisible();
   await page.getByRole("button", { name: "ノード" }).press("Enter");
   await expect(page.getByRole("heading", { name: "ノード" })).toBeVisible();
+});
+
+test("S05の六つの理由を保存し、再読込後にS06へ進める", async ({ page }) => {
+  await seedMethodProject(page);
+  await page.evaluate(async () => {
+    const request = indexedDB.open("abcs-projects", 1);
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      request.onsuccess = () => resolve(request.result);
+    });
+    const store = db
+      .transaction("projects", "readonly")
+      .objectStore("projects");
+    const get = store.getAll();
+    const projects = await new Promise<ProjectState[]>((resolve) => {
+      get.onsuccess = () => resolve(get.result as ProjectState[]);
+    });
+    const project = projects[0]!;
+    project.currentStage = "planning";
+    const now = new Date().toISOString();
+    project.methodUnderstanding = {
+      contentId: "method-understanding-v1",
+      answers: [
+        ["observation-role", "complementary"],
+        ["particle-meaning", "coarse-dark-matter"],
+        ["seed-meaning", "realization"],
+        ["periodic-meaning", "wrap"],
+        ["dm-scope", "gravity-structure"],
+      ].map(([questionId, choiceId]) => ({
+        questionId: questionId!,
+        choiceId: choiceId!,
+        answeredAt: now,
+      })),
+      completedAt: now,
+    };
+    Object.assign(project.researchPlanDraft, {
+      priorityGoal: "balance",
+      boxSizeMpcOverH: 50,
+      particleSide: 32,
+      snapshotIds: ["initial", "z5", "z2", "z0"],
+      primaryAnalysis: "density-image",
+      plannedFigure: "density-panels",
+      expectedPattern: "unsure",
+    });
+    const tx = db.transaction("projects", "readwrite");
+    tx.objectStore("projects").put(project);
+    await new Promise<void>((resolve) => {
+      tx.oncomplete = () => resolve();
+    });
+    db.close();
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "自分の研究計画案を組み立てる" }),
+  ).toBeVisible();
+  const reasons = page.getByRole("radio", {
+    name: "問いに必要な証拠とつながるから",
+  });
+  await expect(reasons).toHaveCount(6);
+  for (let i = 0; i < 6; i++) await reasons.nth(i).click();
+  await expect(page.getByText("保存しました。")).toBeVisible();
+  await page.reload();
+  const restored = page.getByRole("radio", {
+    name: "問いに必要な証拠とつながるから",
+  });
+  for (let i = 0; i < 6; i++) await expect(restored.nth(i)).toBeChecked();
+  await page.getByRole("button", { name: "研究計画案をまとめる" }).click();
+  await page.getByRole("button", { name: "Miraのレビューへ進む" }).click();
+  await expect(
+    page.getByRole("heading", { name: "研究計画案のつながりを確認する" }),
+  ).toBeVisible();
 });

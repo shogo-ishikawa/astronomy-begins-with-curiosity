@@ -22,6 +22,7 @@ import {
   type PilotRecord,
   type PilotSettings,
 } from "./logic";
+import { formatSnapshotId } from "../../domain/snapshotTime";
 
 const warning =
   "操作と比較方法を体験するための合成データです。CWSの計算結果や観測データではありません。";
@@ -117,11 +118,11 @@ function DensityFigure({
       <figcaption>
         L = {settings.boxSizeMpcOverH} h⁻¹ Mpc、N<sub>side</sub> ={" "}
         {settings.particleSide}（N<sub>p</sub> = {settings.particleSide ** 3}
-        ）、{settings.snapshotId}（z ={" "}
-        {settings.snapshotId.slice(1) || "initial"}）。表示量
+        ）、{formatSnapshotId(settings.snapshotId)}。表示量
         ρ/ρ̄、log(1+ρ/ρ̄)、viridis相当、表示範囲 {min.toFixed(3)}–{max.toFixed(3)}
-        。投影 xy、64×64、{demoProvenance.generator} v
-        {demoProvenance.generatorVersion}。
+        。暗黒物質の密度場を模した合成二次元密度場です。投影
+        xy、表示グリッド64×64（N<sub>side</sub>とは別）、
+        {demoProvenance.generator} v{demoProvenance.generatorVersion}。
       </figcaption>
     </figure>
   );
@@ -390,9 +391,13 @@ export function PilotStage({
                       name="other"
                       onChange={() => setOther(v)}
                     />
-                    {axis === "box-size"
-                      ? `L = ${v} h⁻¹ Mpc`
-                      : `N_side = ${v}（N_p = ${v ** 3}）`}
+                    {axis === "box-size" ? (
+                      `L = ${v} h⁻¹ Mpc`
+                    ) : (
+                      <>
+                        N<sub>side</sub> = {v}（N<sub>p</sub> = {v ** 3}）
+                      </>
+                    )}
                   </label>
                 ))}
               </fieldset>
@@ -404,7 +409,9 @@ export function PilotStage({
                 onChange={(e) => setSnapshot(e.target.value)}
               >
                 {plan.resolved.snapshotIds.map((id) => (
-                  <option key={id}>{id}</option>
+                  <option key={id} value={id}>
+                    {formatSnapshotId(id)}
+                  </option>
                 ))}
               </select>
             </label>
