@@ -845,7 +845,40 @@ h1 {
 .finding.strength {
   border-left: 5px solid #82b79a;
 }
+.demo-banner,
+.demo-label {
+  border: 2px solid #e2c06d;
+  background: #2b2414;
+  color: #fff3c4;
+  padding: 0.8rem;
+  font-weight: 700;
+}
+.density-comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+.density-figure {
+  min-width: 0;
+  margin: 0;
+}
+.density-figure canvas {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+.pilot label {
+  display: block;
+  margin: 0.6rem 0;
+}
+.pilot textarea,
+.pilot select {
+  max-width: 100%;
+}
 @media (max-width: 800px) {
+  .density-comparison {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .lesson-steps {
     grid-template-columns: 1fr 1fr;
   }

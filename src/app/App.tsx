@@ -38,6 +38,8 @@ import {
 } from "../features/review/logic";
 import { REVIEW_RULE_SET_ID } from "../features/review/content";
 import { PageTransitionFocusManager } from "../components/PageTransitionFocusManager/PageTransitionFocusManager";
+import { PilotStage } from "../features/pilot/PilotStage";
+import type { PilotRecord } from "../features/pilot/logic";
 import {
   planCompletionMissing,
   updateDraft,
@@ -57,6 +59,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.pilot?.status === "complete") return "必須の試し計算 完了";
+  if (project.currentStage === "pilot") return "必須の試し計算中";
   if (project.planReviewCompletedAt) return "研究計画レビュー 完了";
   if (project.currentStage === "plan-review") return "研究計画をレビュー中";
   if (project.researchPlanDraft.completedAt) return "研究計画案 完了";
@@ -136,7 +140,7 @@ function Home() {
         <h2 id="theme-title">{cosmicWebGrowthTheme.title}</h2>
         <p>{cosmicWebGrowthTheme.question}</p>
         <p className="phase-note">
-          Phase 1Eでは、研究計画案をMiraとレビューし、計画版として保存できます。
+          Phase 1Fでは、承認済み計画を基準に必須の試し計算を体験できます。
         </p>
       </section>
       <section aria-labelledby="projects-title">
@@ -209,10 +213,11 @@ function ProjectWorkspace() {
               "method",
               "planning",
               "plan-review",
+              "pilot",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
-            : "planning";
+            : "pilot";
           const safeStage = guardStage(result, requested);
           const wasGuarded = safeStage !== requested;
           const history = addMiraMessage(
@@ -353,7 +358,10 @@ function ProjectWorkspace() {
         ...current,
         researchPlanDraft: draft,
         planReviewCompletedAt: null,
-        activePlanVersionId: null,
+        activePlanVersionId:
+          current.pilot?.status === "awaiting-rereview"
+            ? current.activePlanVersionId
+            : null,
         updatedAt: now,
         miraHistory: addMiraMessage(
           current.miraHistory,
@@ -472,6 +480,16 @@ function ProjectWorkspace() {
           r.reviewId === review.reviewId ? complete : r,
         ),
         planReviewCompletedAt: now,
+        pilot:
+          project.pilot?.status === "awaiting-rereview"
+            ? {
+                ...project.pilot,
+                status: "complete",
+                resultingPlanVersionId: version.planVersionId,
+                completedAt: now,
+              }
+            : project.pilot,
+        currentStage: "pilot",
         updatedAt: now,
       });
     } catch {
@@ -717,6 +735,49 @@ function ProjectWorkspace() {
                   updatedAt: new Date().toISOString(),
                 })
               }
+            />
+          ) : project.currentStage === "pilot" ? (
+            <PilotStage
+              project={project}
+              onGlossary={openGlossary}
+              save={async (pilot) => {
+                await persist({
+                  ...project,
+                  pilot,
+                  updatedAt: new Date().toISOString(),
+                });
+              }}
+              revise={async (pilot: PilotRecord) => {
+                if (!pilot.comparison || !pilot.axis) return;
+                const now = new Date().toISOString();
+                const draft = structuredClone(
+                  project.planVersions.find(
+                    (v) => v.planVersionId === pilot.baselinePlanVersionId,
+                  )!.subjectSnapshot.draft,
+                );
+                if (pilot.axis === "box-size")
+                  draft.boxSizeMpcOverH = pilot.comparison.boxSizeMpcOverH as
+                    | 25
+                    | 50
+                    | 75
+                    | 100;
+                else
+                  draft.particleSide = pilot.comparison.particleSide as
+                    | 16
+                    | 32
+                    | 64;
+                draft.completedAt = null;
+                draft.updatedAt = now;
+                await persist({
+                  ...project,
+                  pilot,
+                  researchPlanDraft: draft,
+                  planReviewCompletedAt: null,
+                  planChangeReasonId: "pilot-revision",
+                  currentStage: "planning",
+                  updatedAt: now,
+                });
+              }}
             />
           ) : (
             <Invitation
