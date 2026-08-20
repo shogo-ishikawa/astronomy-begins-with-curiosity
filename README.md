@@ -10,13 +10,17 @@ ABCsは、天文学の知識を前提としない学部生が、実際の研究�
 
 ## 現在の状態
 
-🚧 **v0.1 Phase 0 基盤実装**
+🚧 **開発中のプロトタイプ — v0.1-alpha / Phase 0**
 
 最初の研究テーマとして、宇宙論的N体シミュレーションを用いた「宇宙の網目はどのように成長するのか」を実装する予定です。
 
-## 公開予定
+現在は開発中のため、表示内容やブラウザ内の保存形式が今後変更される可能性があります。
 
-Viteのproduction buildをGitHub Pagesのリポジトリパスで公開できる構成です。
+## 公開版
+
+[ABCs v0.1-alpha](https://shogo-ishikawa.github.io/astronomy-begins-with-curiosity/) をGitHub Pagesで公開します。`main`への変更がマージされ、デプロイ前の品質確認に合格すると自動更新されます。
+
+研究プロジェクトのデータは外部サーバーへ送信せず、利用者のブラウザ内（IndexedDB）に保存されます。
 
 ## Documentation
 
