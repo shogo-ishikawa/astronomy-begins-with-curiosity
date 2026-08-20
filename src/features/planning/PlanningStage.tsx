@@ -5,10 +5,12 @@ import {
   analyses,
   figures,
   patterns,
+  planningExplanations,
   priorities,
   reasons,
   snapshots,
 } from "../../content/ja/planning";
+import { RichText } from "../../components/RichText";
 import {
   calculatePlanMetrics,
   planCompletionMissing,
@@ -145,6 +147,18 @@ export function PlanningStage({
           同じ粒子数なら、小さい箱ほど細かく標本化しやすい一方、大きな構造を含みにくくなります。大きい箱は多様な領域を含みやすい一方、粒子間隔が広がります。
         </p>
         <p>
+          <RichText
+            text={planningExplanations.boxAndParticles}
+            onGlossary={onGlossary}
+          />
+        </p>
+        <p>
+          <RichText
+            text={planningExplanations.particleSide}
+            onGlossary={onGlossary}
+          />
+        </p>
+        <p>
           <button className="term-link" onClick={() => onGlossary("box-size")}>
             箱サイズ
           </button>
@@ -187,7 +201,9 @@ export function PlanningStage({
             firstRefs.current.particleSide = x;
           }}
         >
-          <legend>一辺の粒子数 Nside</legend>
+          <legend>
+            一辺の粒子数 N<sub>side</sub>
+          </legend>
           <div className="choice-grid compact">
             {([16, 32, 64] as const).map((x) => (
               <label className="plan-choice" key={x}>
@@ -247,8 +263,15 @@ export function PlanningStage({
         >
           <legend>3. スナップショット</legend>
           <p>
-            初期宇宙から現在へ並んでいます。スケール因子は a = 1 / (1 + z)
-            です。計算開始時は宇宙の晴れ上がりを意味しません。
+            <RichText
+              text={planningExplanations.snapshots}
+              onGlossary={onGlossary}
+            />
+          </p>
+          <p>
+            例: z = 10 → a ≈ 0.091、z = 5 → a ≈ 0.167、z = 2 → a ≈ 0.333、z = 1
+            → a = 0.5、z = 0 → a =
+            1。計算開始時は宇宙の晴れ上がりを意味しません。
           </p>
           <div className="choice-grid">
             {snapshots.map((s) => (
@@ -285,6 +308,12 @@ export function PlanningStage({
         )}
       </section>
       <section>
+        <p>
+          <RichText
+            text={planningExplanations.densityField}
+            onGlossary={onGlossary}
+          />
+        </p>
         <fieldset
           tabIndex={-1}
           ref={(x) => {

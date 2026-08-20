@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { glossaryEntries, glossaryById } from "./glossary/entries";
 import { methodContent } from "./method/content";
 import { prohibitedTechnicalTerms } from "./technicalTerms";
+import { planningGlossaryIds } from "./planning";
 it("all S04 glossary links exist", () => {
   for (const s of methodContent.sections)
     for (const id of s.glossaryTerms)
@@ -9,6 +10,10 @@ it("all S04 glossary links exist", () => {
   for (const q of methodContent.questions)
     for (const id of q.glossaryTerms)
       expect(glossaryById.has(id), id).toBe(true);
+});
+it("all S05 glossary links exist", () => {
+  for (const id of planningGlossaryIds)
+    expect(glossaryById.has(id), id).toBe(true);
 });
 it("uses approved technical spellings", () => {
   const text = JSON.stringify({ glossaryEntries, methodContent });

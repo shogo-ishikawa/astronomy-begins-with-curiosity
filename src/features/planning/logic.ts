@@ -140,8 +140,8 @@ export function updateDraft(
       ? normalizeSnapshotIds(change.snapshotIds)
       : draft.snapshotIds,
     reasonIds: reasonToReset
-      ? { ...draft.reasonIds, [reasonToReset]: null }
-      : draft.reasonIds,
+      ? { ...(change.reasonIds ?? draft.reasonIds), [reasonToReset]: null }
+      : (change.reasonIds ?? draft.reasonIds),
     updatedAt: now,
     completedAt: null,
   };

@@ -50,9 +50,75 @@ export const glossaryEntries: GlossaryEntry[] = [
     relevance: "赤方偏移とともに時系列の横軸に使えます。",
     example: "a = 1 / (1 + z)",
     detail:
-      "現在を a = 1 とする表し方で、赤方偏移が大きい過去ほど小さくなります。",
+      "現在を a = 1 とし、a = 1 / (1 + z) で赤方偏移と結び付きます。過去ほど小さくなりますが、宇宙年齢の割合でも個々の天体の大きさでもありません。",
     courses: ["宇宙論"],
     related: ["redshift"],
+  },
+  {
+    id: "comoving-distance",
+    term: "共動座標／共動距離",
+    short: "宇宙全体の膨張を取り除いて位置や距離を表す方法です。",
+    relevance: "膨張する宇宙の計算箱を同じ座標で追跡できます。",
+    example: "膨張と一緒に動く目盛りで位置を測るイメージです。",
+    detail:
+      "物体間の物理的な距離そのものではなく、宇宙膨張による一様な伸びを分けて表します。",
+    courses: ["宇宙論"],
+    related: ["h-inverse-mpc", "box-size"],
+  },
+  {
+    id: "h-inverse-mpc",
+    term: "h⁻¹ Mpc",
+    short: "宇宙論で使う距離の単位です。",
+    relevance:
+      "計算箱の共動距離を、ハッブル定数の規格化 h を明示して記録します。",
+    example: "L = 50 h⁻¹ Mpc",
+    detail:
+      "現在のDEMOでは採用する h を確定していないため、通常のMpcへ勝手に換算しません。",
+    courses: ["宇宙論", "物理学"],
+    related: ["comoving-distance"],
+  },
+  {
+    id: "particle-side",
+    term: "一辺あたりの粒子数 N_side",
+    short: "立方体の一辺方向に置く計算粒子数です。",
+    relevance: "全粒子数 N_p = N_side³ と計算負荷を決めます。",
+    example: "N_side = 32 なら N_p = 32³ = 32,768。",
+    detail:
+      "一辺を2倍にすると全粒子数は8倍です。二次元画像の画素数や表示グリッドではなく、増やしてもガスや星形成の物理は追加されません。",
+    courses: ["数値計算"],
+    related: ["computational-particle", "particle-count"],
+  },
+  {
+    id: "density-field",
+    term: "密度場",
+    short: "空間の各場所に物質密度の値を割り当てたものです。",
+    relevance: "計算粒子を格子へ数え上げたり平滑化したりして分布を比較します。",
+    example: "三次元の各格子点に密度 ρ を割り当てます。",
+    detail:
+      "計算粒子そのものとは別です。三次元密度場と、それを一方向へ重ねた二次元投影密度も区別します。",
+    courses: ["物理学", "数値計算"],
+    related: ["projected-density", "density-ratio"],
+  },
+  {
+    id: "projected-density",
+    term: "投影密度",
+    short: "三次元の密度場を一方向へ重ねて二次元で表した密度です。",
+    relevance: "二次元画像が三次元構造そのものではないと区別します。",
+    example: "xy面へ投影すると奥行き方向の情報が重なります。",
+    detail:
+      "投影方向や厚さ、格子、平滑化条件をそろえて比較する必要があります。",
+    courses: ["物理学", "データサイエンス"],
+    related: ["density-field"],
+  },
+  {
+    id: "density-ratio",
+    term: "平均密度との比 ρ/ρ̄",
+    short: "各場所の密度 ρ を平均密度 ρ̄ で割った無次元量です。",
+    relevance: "単位に依存せず、平均より濃いか薄いかを比べます。",
+    example: "ρ/ρ̄ = 1 は平均密度と同じです。",
+    detail: "密度コントラストは δ = ρ/ρ̄ − 1 です。",
+    courses: ["数学", "物理学"],
+    related: ["density-field", "density-contrast"],
   },
   ...[
     [
@@ -180,7 +246,7 @@ export const glossaryEntries: GlossaryEntry[] = [
     example:
       "計算粒子は多数の暗黒物質をまとめて表す要素で、素粒子一個ではありません。",
     detail:
-      "暗黒物質のみの計算は、ガス冷却、星形成、フィードバックを直接計算しません。",
+      "黒い色の物質という意味ではなく、暗黒エネルギーとも別です。光との反応が非常に弱く、主に重力の影響から存在が分かります。微視的な正体はまだ分かっていません。今回の計算は重力運動を扱い、ガス、星形成、銀河の光を直接計算しません。",
     courses: ["力学", "宇宙物理学"],
     related: ["n-body"],
   },
@@ -202,7 +268,7 @@ export const glossaryEntries: GlossaryEntry[] = [
     relevance: "複数時点を比べると、構造がいつ変化したかを調べられます。",
     example: "動画から時刻の異なる静止画を取り出して比べるようなものです。",
     detail:
-      "各スナップショットには時刻に相当する情報と計算条件、データの来歴が必要です。",
+      "写真ではありません。内部では多数の細かい時間刻みで計算し、その一部の時点だけを保存します。各データには時刻に相当する情報、計算条件、来歴が必要です。",
     courses: ["数値計算", "データサイエンス"],
     related: ["n-body"],
   },
@@ -308,7 +374,7 @@ export const glossaryEntries: GlossaryEntry[] = [
     relevance: "異なる赤方偏移の観測から宇宙史を調べます。",
     example: "一般に大きい赤方偏移ほど遠い過去に対応します。",
     detail:
-      "時間そのものではありませんが、宇宙論モデルを通じて時代と関係付けられます。",
+      "z = 0 が現在で、大きいほど過去です。経過年数そのものではなく、宇宙年齢への変換は宇宙論モデルに依存します。",
     courses: ["天文学"],
     related: ["simulation"],
   },
