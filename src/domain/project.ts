@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyResearchPlanDraft } from "../features/planning/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -104,12 +105,56 @@ const base = z.object({
   miraHistory: z.array(miraMessageRecordSchema),
   completedAt: z.string().datetime().nullable(),
 });
+const researchPlanDraftSchema = z.object({
+  contentId: z.literal("research-plan-v1"),
+  priorityGoal: z.enum(["large-web", "dense-detail", "balance"]).nullable(),
+  boxSizeMpcOverH: z
+    .union([z.literal(25), z.literal(50), z.literal(75), z.literal(100)])
+    .nullable(),
+  particleSide: z
+    .union([z.literal(16), z.literal(32), z.literal(64)])
+    .nullable(),
+  snapshotIds: z.array(z.enum(["initial", "z10", "z5", "z2", "z1", "z0"])),
+  primaryAnalysis: z
+    .enum(["density-image", "sigma-delta", "dense-fraction"])
+    .nullable(),
+  plannedFigure: z
+    .enum(["density-panels", "sigma-growth", "dense-growth"])
+    .nullable(),
+  expectedPattern: z
+    .enum(["increase", "decrease", "stable", "complex", "unsure"])
+    .nullable(),
+  reasonIds: z.object({
+    priorityGoal: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+    boxSize: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+    particleSide: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+    snapshots: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+    primaryAnalysis: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+    figurePrediction: z
+      .enum(["evidence", "tradeoff", "baseline", "familiar", "unsure"])
+      .nullable(),
+  }),
+  note: z.string().max(300),
+  updatedAt: z.string().datetime().nullable(),
+  completedAt: z.string().datetime().nullable(),
+});
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(3),
+  schemaVersion: z.literal(4),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
   methodUnderstanding: methodUnderstandingSchema,
+  researchPlanDraft: researchPlanDraftSchema,
 });
 export type ProjectState = z.infer<typeof projectStateSchema>;
 
@@ -120,16 +165,17 @@ export function migrateProject(value: unknown): ProjectState {
       hypothesis: z.unknown().nullish(),
       prediction: z.unknown().nullish(),
       methodUnderstanding: z.unknown().optional(),
+      researchPlanDraft: z.unknown().optional(),
     })
     .parse(value);
-  if (raw.schemaVersion > 3)
+  if (raw.schemaVersion > 4)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 3) return projectStateSchema.parse(raw);
+  if (raw.schemaVersion === 4) return projectStateSchema.parse(raw);
   return projectStateSchema.parse({
     ...raw,
-    schemaVersion: 3,
+    schemaVersion: 4,
     researchQuestion: raw.schemaVersion < 2 ? null : raw.researchQuestion,
     hypothesis: raw.schemaVersion < 2 ? null : raw.hypothesis,
     prediction: raw.schemaVersion < 2 ? null : raw.prediction,
@@ -138,13 +184,14 @@ export function migrateProject(value: unknown): ProjectState {
       answers: [],
       completedAt: null,
     },
+    researchPlanDraft: emptyResearchPlanDraft(),
   });
 }
 
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
@@ -162,6 +209,7 @@ export function createEmptyProject(now = new Date()): ProjectState {
       answers: [],
       completedAt: null,
     },
+    researchPlanDraft: emptyResearchPlanDraft(),
     planVersions: [],
     activePlanVersion: null,
     pilot: null,

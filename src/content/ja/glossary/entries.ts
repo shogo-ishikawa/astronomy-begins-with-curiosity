@@ -10,6 +10,50 @@ export interface GlossaryEntry {
 }
 
 export const glossaryEntries: GlossaryEntry[] = [
+  {
+    id: "box-size",
+    term: "箱サイズ",
+    short: "シミュレーションで扱う立方体領域の一辺です。",
+    relevance: "含められる大きな構造と粒子間隔の両方に関係します。",
+    example: "50 h⁻¹ Mpc",
+    detail:
+      "共動距離で表します。小さい箱は同じ粒子数なら細かく標本化できますが、大きな空間スケールを含みにくくなります。",
+    courses: ["数値計算", "宇宙論"],
+    related: ["mean-particle-spacing", "particle-count"],
+  },
+  {
+    id: "particle-count",
+    term: "粒子数",
+    short: "物質分布を標本化する計算粒子の個数です。",
+    relevance: "細かさ、計算量、メモリ、出力負荷を左右します。",
+    example: "一辺32なら 32³ = 32,768 個",
+    detail:
+      "多いほど細かく標本化できますが、計算資源が増えます。計算粒子は星や銀河一個ではありません。",
+    courses: ["数値計算"],
+    related: ["box-size", "computational-particle"],
+  },
+  {
+    id: "mean-particle-spacing",
+    term: "平均粒子間隔",
+    short: "箱サイズを一辺の粒子数で割った間隔の目安です。",
+    relevance: "設定同士の標本化の細かさを比べます。",
+    example: "dₚ = L / Nside",
+    detail:
+      "力の分解能そのものではありません。力の分解能には計算法、メッシュ、重力ソフトニングも関係します。",
+    courses: ["数値計算"],
+    related: ["box-size", "particle-count"],
+  },
+  {
+    id: "scale-factor",
+    term: "スケール因子",
+    short: "宇宙の大きさの相対的な尺度です。",
+    relevance: "赤方偏移とともに時系列の横軸に使えます。",
+    example: "a = 1 / (1 + z)",
+    detail:
+      "現在を a = 1 とする表し方で、赤方偏移が大きい過去ほど小さくなります。",
+    courses: ["宇宙論"],
+    related: ["redshift"],
+  },
   ...[
     [
       "research-question",

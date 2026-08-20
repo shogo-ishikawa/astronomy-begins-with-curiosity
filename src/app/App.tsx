@@ -27,6 +27,13 @@ import { questionMeasurementAligned } from "../features/question/logic";
 import { projectRepository } from "../persistence/projectRepository";
 import { MethodStage } from "../features/method/MethodStage";
 import { answerMethod, isCorrect } from "../features/method/logic";
+import { PlanningStage } from "../features/planning/PlanningStage";
+import {
+  planCompletionMissing,
+  updateDraft,
+  type ReasonKey,
+  type ResearchPlanDraft,
+} from "../features/planning/logic";
 import {
   guardReason,
   guardStage,
@@ -40,6 +47,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.researchPlanDraft.completedAt) return "研究計画案 完了";
+  if (project.currentStage === "planning") return "研究計画案 作成中";
   if (project.methodUnderstanding.completedAt) return "方法の理解 完了";
   if (project.currentStage === "method") return "方法を確認中";
   if (project.prediction) return "仮説と予想 完了";
@@ -115,7 +124,7 @@ function Home() {
         <h2 id="theme-title">{cosmicWebGrowthTheme.title}</h2>
         <p>{cosmicWebGrowthTheme.question}</p>
         <p className="phase-note">
-          Phase 1Cでは、研究課題と仮説をもとに、方法の強みと限界を確認できます。
+          Phase 1Dでは、研究課題と仮説をもとに研究計画案を組み立てられます。
         </p>
       </section>
       <section aria-labelledby="projects-title">
@@ -180,10 +189,17 @@ function ProjectWorkspace() {
         if (!active) return;
         if (result) {
           const requested = (
-            ["home", "invitation", "question", "hypothesis", "method"] as const
+            [
+              "home",
+              "invitation",
+              "question",
+              "hypothesis",
+              "method",
+              "planning",
+            ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
-            : "method";
+            : "planning";
           const safeStage = guardStage(result, requested);
           const wasGuarded = safeStage !== requested;
           const history = addMiraMessage(
@@ -311,6 +327,54 @@ function ProjectWorkspace() {
       ),
     });
     setSideTab("mira");
+  }
+  function updatePlan(
+    change: Partial<ResearchPlanDraft>,
+    reason: ReasonKey | null,
+  ) {
+    setProject((current) => {
+      if (!current) return current;
+      const now = new Date().toISOString();
+      const draft = updateDraft(current.researchPlanDraft, change, reason, now);
+      const next = {
+        ...current,
+        researchPlanDraft: draft,
+        updatedAt: now,
+        miraHistory: addMiraMessage(
+          current.miraHistory,
+          `planning-${reason ?? Object.keys(change)[0]}-${JSON.stringify(change)}`,
+          "選択を記録しました。私と、調べやすくなること、調べにくくなること、次に比べたい判断を確認しましょう。",
+        ),
+      };
+      setSaveStatus("保存しています…");
+      void projectRepository.save(next).then(
+        () => setSaveStatus("保存しました。"),
+        () => setSaveStatus("保存できませんでした。再試行してください。"),
+      );
+      return next;
+    });
+    setSideTab("mira");
+  }
+  function completePlan() {
+    setProject((current) => {
+      if (!current || planCompletionMissing(current.researchPlanDraft).length)
+        return current;
+      const now = new Date().toISOString();
+      const next = {
+        ...current,
+        updatedAt: now,
+        researchPlanDraft: {
+          ...current.researchPlanDraft,
+          completedAt: now,
+          updatedAt: now,
+        },
+      };
+      setSaveStatus("保存しています…");
+      void projectRepository
+        .save(next)
+        .then(() => setSaveStatus("保存しました。"));
+      return next;
+    });
   }
   function updateQuestion(field: string, value: string) {
     if (!project) return;
@@ -508,6 +572,15 @@ function ProjectWorkspace() {
               project={project}
               onAnswer={updateMethod}
               back={() => goStage("hypothesis")}
+              next={() => goStage("planning")}
+              onGlossary={openGlossary}
+            />
+          ) : project.currentStage === "planning" ? (
+            <PlanningStage
+              project={project}
+              update={updatePlan}
+              complete={completePlan}
+              back={() => goStage("method")}
               onGlossary={openGlossary}
             />
           ) : (
@@ -583,7 +656,7 @@ export function App() {
             ABCs <span>Astronomy Begins with Curiosity</span>
           </a>
           <p className="prototype-status">
-            開発中のプロトタイプ — v0.1-alpha / Phase 1C
+            開発中のプロトタイプ — v0.1-alpha / Phase 1D
           </p>
         </div>
       </header>
