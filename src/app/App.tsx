@@ -232,9 +232,14 @@ export function App() {
         本文へ移動
       </a>
       <header className="site-header">
-        <a href={`${import.meta.env.BASE_URL}#/`} aria-label="ABCs ホーム">
-          ABCs <span>Astronomy Begins with Curiosity</span>
-        </a>
+        <div className="site-header-content">
+          <a href={`${import.meta.env.BASE_URL}#/`} aria-label="ABCs ホーム">
+            ABCs <span>Astronomy Begins with Curiosity</span>
+          </a>
+          <p className="prototype-status">
+            開発中のプロトタイプ — v0.1-alpha / Phase 0
+          </p>
+        </div>
       </header>
       <Routes>
         <Route path="/" element={<Home />} />

@@ -56,15 +56,26 @@ button:disabled {
   border-bottom: 1px solid #33415e;
   background: #0b1224e8;
 }
-.site-header a {
-  display: block;
+.site-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   max-width: 1180px;
   margin: auto;
   padding: 1rem 1.5rem;
+}
+.site-header a {
   color: #fff5d8;
   font-weight: 800;
   text-decoration: none;
   letter-spacing: 0.03em;
+}
+.prototype-status {
+  margin: 0;
+  color: #aebbd2;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 .site-header span {
   margin-left: 0.5rem;
@@ -216,6 +227,13 @@ h1 {
   .site-header span {
     display: block;
     margin-left: 0;
+  }
+  .site-header-content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .prototype-status {
+    white-space: normal;
   }
   .project-card,
   .section-heading {
