@@ -1,2 +1,23 @@
-# astronomy-begins-with-curiosity
-ABCs — Undergraduate Astronomy Research Lab
+# ABCs — Astronomy Begins with Curiosity
+
+**Undergraduate Astronomy Research Lab**
+
+ABCsは、天文学の知識を前提としない学部生が、実際の研究と同じ考え方や道筋を体験するための教育用Webアプリです。
+
+ユーザーは、宇宙への疑問から研究課題を組み立て、仮説と予想を立て、仮想観測や数値シミュレーション、データ解析、図の作成、結果の解釈、ミニ論文の作成までを経験します。
+
+研究パートナーのMiraが、専門用語を丁寧に説明しながら、ユーザー自身が考えて研究を進められるように支援します。
+
+## 現在の状態
+
+🚧 **v0.1プロトタイプ設計中**
+
+最初の研究テーマとして、宇宙論的N体シミュレーションを用いた「宇宙の網目はどのように成長するのか」を実装する予定です。
+
+## 公開予定
+
+GitHub Pagesで公開する予定です。
+
+## Documentation
+
+実装仕様書は、今後 `docs/ABCs_v0.1_implementation_spec.md` に追加します。
