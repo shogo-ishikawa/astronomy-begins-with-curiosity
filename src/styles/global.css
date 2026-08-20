@@ -201,8 +201,238 @@ h1 {
 }
 .workspace-grid {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 240px;
+  grid-template-columns: 210px minmax(0, 1fr) 280px;
   gap: 1.25rem;
+}
+.project-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+}
+.project-heading h1 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  margin-bottom: 0.8rem;
+}
+.support-panel {
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+}
+.support-panel [role="tablist"] {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 1px solid #465574;
+  padding: 0 0 0.7rem;
+}
+.support-panel [role="tab"] {
+  flex: 1;
+  padding: 0.45rem;
+}
+.support-panel [role="tab"][aria-selected="true"] {
+  border-color: #ffca69;
+  color: #17120a;
+  background: #ffca69;
+  font-weight: 700;
+}
+.partner-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.partner-heading h2,
+.partner-heading p {
+  margin: 0;
+}
+.partner-heading p {
+  color: #bdc8db;
+  font-size: 0.85rem;
+}
+.mira-star {
+  width: 46px;
+  height: 46px;
+  fill: #ffd27e;
+  filter: drop-shadow(0 0 7px #ffd27e66);
+}
+.mira-star circle {
+  fill: #fff8dc;
+}
+.mira-star.large {
+  width: 58px;
+  height: 58px;
+}
+.welcome .mira-panel {
+  margin: 1.3rem 0;
+  padding: 1rem;
+  border-left: 3px solid #ffca69;
+  background: #171d30;
+}
+.invitation > h1 {
+  max-width: 17ch;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+.lead {
+  color: #dbe2ef;
+  font-size: 1.1rem;
+}
+.invitation section {
+  margin-top: 2.8rem;
+}
+.cosmic-figure {
+  margin: 2.2rem 0;
+  padding: 1rem;
+  border: 1px solid #465574;
+  border-radius: 0.8rem;
+  background: #080f20;
+}
+.diagram-label {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #e4b963;
+  border-radius: 2rem;
+  color: #ffe0a5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.cosmic-figure svg {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+}
+.cosmic-figure rect {
+  fill: #111c35;
+  stroke: #637597;
+}
+.cosmic-figure circle {
+  fill: #ffd27e;
+  stroke: #091124;
+  stroke-width: 2;
+}
+.cosmic-figure text {
+  fill: #f4f3ed;
+  font-size: 13px;
+}
+.cosmic-figure .figure-note {
+  font-size: 11px;
+  fill: #becae0;
+}
+.time-arrow path,
+.filaments path {
+  fill: none;
+  stroke: #b8c9e9;
+  stroke-width: 4;
+}
+.filaments path {
+  stroke: #78b7bf;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cosmic-figure figcaption {
+  color: #bdc8db;
+  font-size: 0.88rem;
+}
+.glossary-link {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dotted #ffcf75;
+  border-radius: 0;
+  color: #ffe0a5;
+  background: transparent;
+}
+.glossary-link:hover {
+  background: #47391c;
+}
+.definition {
+  padding: 0.8rem;
+  border-left: 3px solid #ffca69;
+  background: #171d30;
+}
+.glossary-panel h4 {
+  margin-bottom: 0.2rem;
+}
+.glossary-panel h4 + p {
+  margin-top: 0;
+}
+.related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.related button {
+  min-height: 32px;
+  padding: 0.2rem 0.5rem;
+}
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+}
+.course-grid article {
+  padding: 1rem;
+  border: 1px solid #42516f;
+  border-radius: 0.7rem;
+  background: #121d34;
+}
+.course-grid h3 {
+  color: #ffdc93;
+  font-size: 1rem;
+}
+.choice-cards {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 1.5rem;
+}
+.choice-cards button {
+  display: flex;
+  gap: 0.8rem;
+  text-align: left;
+}
+.choice-cards button[aria-checked="true"] {
+  border: 2px solid #ffca69;
+  background: #3a321f;
+  font-weight: 700;
+}
+.choice-indicator {
+  color: #ffdc93;
+  font-weight: 900;
+}
+.motivation-section label {
+  display: block;
+  margin: 0.7rem 0 0.35rem;
+  font-weight: 700;
+}
+.motivation-section textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #667594;
+  border-radius: 0.5rem;
+  color: #f4f3ed;
+  background: #080f20;
+  font: inherit;
+}
+.completion-notice {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #82b79a;
+  border-radius: 0.7rem;
+  background: #10291f;
+}
+.completion-notice p {
+  margin-bottom: 0;
+}
+.progress-panel .done {
+  color: #b9d8c5;
+}
+.progress-summary {
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  background: #182540;
+  color: #fff0c5;
+  font-size: 0.85rem;
 }
 .workspace-grid > * {
   padding: 1.3rem;
@@ -245,6 +475,16 @@ h1 {
   }
   .workspace-grid {
     grid-template-columns: 1fr;
+  }
+  .support-panel {
+    position: static;
+  }
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+  .project-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 @media (prefers-reduced-motion: reduce) {
