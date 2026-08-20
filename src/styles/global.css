@@ -821,6 +821,30 @@ h1 {
   border-color: #82b79a;
   background: #10291f;
 }
+.work-card:focus,
+.review-results:focus,
+.stage h1:focus {
+  outline: 3px solid #fff0b8;
+  outline-offset: 0.3rem;
+  scroll-margin-top: 6rem;
+}
+.mira-review-intro,
+.review-results,
+.finding {
+  padding: 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid #566681;
+  margin: 1rem 0;
+}
+.finding.blocking {
+  border-left: 5px solid #ef8f8f;
+}
+.finding.warning {
+  border-left: 5px solid #e2c06d;
+}
+.finding.strength {
+  border-left: 5px solid #82b79a;
+}
 @media (max-width: 800px) {
   .lesson-steps {
     grid-template-columns: 1fr 1fr;

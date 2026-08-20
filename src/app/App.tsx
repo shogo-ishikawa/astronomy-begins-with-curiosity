@@ -28,6 +28,16 @@ import { projectRepository } from "../persistence/projectRepository";
 import { MethodStage } from "../features/method/MethodStage";
 import { answerMethod, isCorrect } from "../features/method/logic";
 import { PlanningStage } from "../features/planning/PlanningStage";
+import { PlanReviewStage } from "../features/review/PlanReviewStage";
+import {
+  buildReviewedSubject,
+  createPlanVersion,
+  reviewPlan,
+  subjectHash,
+  type PlanReviewRecord,
+} from "../features/review/logic";
+import { REVIEW_RULE_SET_ID } from "../features/review/content";
+import { PageTransitionFocusManager } from "../components/PageTransitionFocusManager/PageTransitionFocusManager";
 import {
   planCompletionMissing,
   updateDraft,
@@ -47,6 +57,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.planReviewCompletedAt) return "研究計画レビュー 完了";
+  if (project.currentStage === "plan-review") return "研究計画をレビュー中";
   if (project.researchPlanDraft.completedAt) return "研究計画案 完了";
   if (project.currentStage === "planning") return "研究計画案 作成中";
   if (project.methodUnderstanding.completedAt) return "方法の理解 完了";
@@ -124,7 +136,7 @@ function Home() {
         <h2 id="theme-title">{cosmicWebGrowthTheme.title}</h2>
         <p>{cosmicWebGrowthTheme.question}</p>
         <p className="phase-note">
-          Phase 1Dでは、研究課題と仮説をもとに研究計画案を組み立てられます。
+          Phase 1Eでは、研究計画案をMiraとレビューし、計画版として保存できます。
         </p>
       </section>
       <section aria-labelledby="projects-title">
@@ -196,6 +208,7 @@ function ProjectWorkspace() {
               "hypothesis",
               "method",
               "planning",
+              "plan-review",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -339,6 +352,8 @@ function ProjectWorkspace() {
       const next = {
         ...current,
         researchPlanDraft: draft,
+        planReviewCompletedAt: null,
+        activePlanVersionId: null,
         updatedAt: now,
         miraHistory: addMiraMessage(
           current.miraHistory,
@@ -368,6 +383,7 @@ function ProjectWorkspace() {
           completedAt: now,
           updatedAt: now,
         },
+        currentStage: "plan-review" as const,
       };
       setSaveStatus("保存しています…");
       void projectRepository
@@ -375,6 +391,94 @@ function ProjectWorkspace() {
         .then(() => setSaveStatus("保存しました。"));
       return next;
     });
+  }
+  function requestReview(limitationChoiceIds: string[]) {
+    if (!project) return;
+    const subject = buildReviewedSubject(project, limitationChoiceIds);
+    const hash = subjectHash(subject);
+    if (
+      project.planReviewHistory.some(
+        (r) => r.subjectHash === hash && r.ruleSetId === REVIEW_RULE_SET_ID,
+      )
+    )
+      return;
+    const now = new Date().toISOString();
+    const result = reviewPlan(subject);
+    const record: PlanReviewRecord = {
+      reviewId: crypto.randomUUID(),
+      ruleSetId: REVIEW_RULE_SET_ID,
+      reviewedAt: now,
+      subjectHash: hash,
+      subjectSnapshot: structuredClone(subject),
+      overallState: result.overallState,
+      findings: result.findings,
+      acknowledgementRecords: [],
+      limitationChoiceIds,
+      studentDecision: null,
+      committedPlanVersionId: null,
+      completedAt: null,
+    };
+    void persist({
+      ...project,
+      planReviewHistory: [...project.planReviewHistory, record],
+      updatedAt: now,
+      miraHistory: addMiraMessage(
+        project.miraHistory,
+        `review-${record.reviewId}`,
+        "研究計画案の7つのつながりを確認しました。仮説の正誤ではなく、選択した事実、長所、不足または負荷、修正できる項目の順で一緒に考えます。",
+      ),
+    });
+  }
+  function updateReview(review: PlanReviewRecord) {
+    if (!project) return;
+    const now = new Date().toISOString();
+    void persist({
+      ...project,
+      planReviewHistory: project.planReviewHistory.map((r) =>
+        r.reviewId === review.reviewId ? review : r,
+      ),
+      updatedAt: now,
+    });
+  }
+  function commitReview() {
+    if (!project) return;
+    const subject = buildReviewedSubject(project, []);
+    const hash = subjectHash(subject);
+    const review = [...project.planReviewHistory]
+      .reverse()
+      .find((r) => r.subjectHash === hash);
+    if (!review) return;
+    try {
+      const now = new Date().toISOString();
+      const versions = createPlanVersion(
+        review,
+        project.planVersions,
+        project.planChangeReasonId,
+        now,
+      );
+      const version = versions.find(
+        (v) => v.sourceReviewId === review.reviewId,
+      )!;
+      const complete = {
+        ...review,
+        committedPlanVersionId: version.planVersionId,
+        completedAt: now,
+      };
+      void persist({
+        ...project,
+        planVersions: versions,
+        activePlanVersionId: version.planVersionId,
+        planReviewHistory: project.planReviewHistory.map((r) =>
+          r.reviewId === review.reviewId ? complete : r,
+        ),
+        planReviewCompletedAt: now,
+        updatedAt: now,
+      });
+    } catch {
+      setSaveStatus(
+        "保存条件を確認してください。警告の理由、限界、進む判断が必要です。",
+      );
+    }
   }
   function updateQuestion(field: string, value: string) {
     if (!project) return;
@@ -420,6 +524,8 @@ function ProjectWorkspace() {
     void persist({
       ...project,
       researchQuestion: q,
+      planReviewCompletedAt: null,
+      activePlanVersionId: null,
       updatedAt: now,
       miraHistory: addMiraMessage(
         project.miraHistory,
@@ -488,6 +594,8 @@ function ProjectWorkspace() {
       ...project,
       hypothesis: h,
       prediction: p,
+      planReviewCompletedAt: null,
+      activePlanVersionId: null,
       updatedAt: now,
       miraHistory: addMiraMessage(
         project.miraHistory,
@@ -520,6 +628,15 @@ function ProjectWorkspace() {
     );
   return (
     <main id="main-content" className="workspace">
+      <PageTransitionFocusManager
+        pageKey={`${projectId}:${project.currentStage}`}
+        title={
+          project.currentStage === "plan-review"
+            ? "研究計画レビュー"
+            : project.projectName
+        }
+        headingId="stage-title"
+      />
       <nav aria-label="研究プロジェクト">
         <button className="link-button" onClick={() => navigate("/")}>
           ← プロジェクト一覧へ
@@ -543,7 +660,9 @@ function ProjectWorkspace() {
           {project.currentStage === "home" ? (
             <div className="welcome">
               <p className="eyebrow">空の研究ワークスペース</p>
-              <h2>宇宙への疑問を見つける準備ができました</h2>
+              <h2 id="stage-title" tabIndex={-1}>
+                宇宙への疑問を見つける準備ができました
+              </h2>
               <p>
                 このアプリは天文学の予備知識を前提にしません。わからない用語は、本文の点線付きリンクからその場で確認できます。
               </p>
@@ -580,8 +699,24 @@ function ProjectWorkspace() {
               project={project}
               update={updatePlan}
               complete={completePlan}
+              review={() => goStage("plan-review")}
               back={() => goStage("method")}
               onGlossary={openGlossary}
+            />
+          ) : project.currentStage === "plan-review" ? (
+            <PlanReviewStage
+              project={project}
+              requestReview={requestReview}
+              updateReview={updateReview}
+              commit={commitReview}
+              revise={() => goStage("planning")}
+              setChangeReason={(planChangeReasonId) =>
+                void persist({
+                  ...project,
+                  planChangeReasonId,
+                  updatedAt: new Date().toISOString(),
+                })
+              }
             />
           ) : (
             <Invitation
@@ -656,7 +791,7 @@ export function App() {
             ABCs <span>Astronomy Begins with Curiosity</span>
           </a>
           <p className="prototype-status">
-            開発中のプロトタイプ — v0.1-alpha / Phase 1D
+            開発中のプロトタイプ — v0.1-alpha / Phase 1E
           </p>
         </div>
       </header>

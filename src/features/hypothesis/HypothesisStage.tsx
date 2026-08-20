@@ -43,7 +43,9 @@ export function HypothesisStage({
   return (
     <article className="stage">
       <p className="eyebrow">S03 仮説と予想</p>
-      <h1>結果を見る前の考えを記録する</h1>
+      <h1 id="stage-title" tabIndex={-1}>
+        結果を見る前の考えを記録する
+      </h1>
       <p>
         <button
           className="glossary-link"
@@ -67,6 +69,12 @@ export function HypothesisStage({
           choices={[...hypotheses]}
           value={project.hypothesis?.choiceId}
           onChange={(id) => update("hypothesis", id)}
+          orderContext={{
+            seed: project.choiceOrderSeed,
+            themeId: project.themeId,
+            groupId: "s03-hypothesis",
+          }}
+          pinToEnd={["uncertain"]}
         />
       </section>
       {project.hypothesis && (
@@ -81,6 +89,14 @@ export function HypothesisStage({
             choices={predictions}
             value={p?.choiceId}
             onChange={(id) => update("prediction", id)}
+            orderContext={{
+              seed: project.choiceOrderSeed,
+              themeId: project.themeId,
+              groupId: "s03-prediction",
+            }}
+            pinToEnd={predictions
+              .filter((x) => x.direction === "uncertain")
+              .map((x) => x.id)}
           />
         </section>
       )}
@@ -92,6 +108,11 @@ export function HypothesisStage({
             choices={predictionReasons}
             value={p.reasonId || undefined}
             onChange={(id) => update("predictionReason", id)}
+            orderContext={{
+              seed: project.choiceOrderSeed,
+              themeId: project.themeId,
+              groupId: "s03-prediction-reason",
+            }}
           />
           <label>
             任意メモ

@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { emptyResearchPlanDraft } from "../features/planning/logic";
+import { legacyChoiceOrderSeed } from "./choiceOrder";
+import type { PlanReviewRecord, PlanVersion } from "../features/review/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -149,14 +151,25 @@ const researchPlanDraftSchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(4),
+  schemaVersion: z.literal(5),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
   methodUnderstanding: methodUnderstandingSchema,
   researchPlanDraft: researchPlanDraftSchema,
+  choiceOrderSeed: z.string().min(1),
+  planReviewHistory: z.array(z.unknown()),
+  activePlanVersionId: z.string().nullable(),
+  planReviewCompletedAt: z.string().datetime().nullable(),
+  planChangeReasonId: z.string().nullable(),
 });
-export type ProjectState = z.infer<typeof projectStateSchema>;
+export type ProjectState = Omit<
+  z.infer<typeof projectStateSchema>,
+  "planReviewHistory" | "planVersions"
+> & {
+  planReviewHistory: PlanReviewRecord[];
+  planVersions: PlanVersion[];
+};
 
 export function migrateProject(value: unknown): ProjectState {
   const raw = base
@@ -166,16 +179,22 @@ export function migrateProject(value: unknown): ProjectState {
       prediction: z.unknown().nullish(),
       methodUnderstanding: z.unknown().optional(),
       researchPlanDraft: z.unknown().optional(),
+      choiceOrderSeed: z.unknown().optional(),
+      planReviewHistory: z.unknown().optional(),
+      activePlanVersionId: z.unknown().optional(),
+      planReviewCompletedAt: z.unknown().optional(),
+      planChangeReasonId: z.unknown().optional(),
     })
     .parse(value);
-  if (raw.schemaVersion > 4)
+  if (raw.schemaVersion > 5)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 4) return projectStateSchema.parse(raw);
-  return projectStateSchema.parse({
+  if (raw.schemaVersion === 5)
+    return projectStateSchema.parse(raw) as ProjectState;
+  const migrated = projectStateSchema.parse({
     ...raw,
-    schemaVersion: 4,
+    schemaVersion: 5,
     researchQuestion: raw.schemaVersion < 2 ? null : raw.researchQuestion,
     hypothesis: raw.schemaVersion < 2 ? null : raw.hypothesis,
     prediction: raw.schemaVersion < 2 ? null : raw.prediction,
@@ -184,18 +203,32 @@ export function migrateProject(value: unknown): ProjectState {
       answers: [],
       completedAt: null,
     },
-    researchPlanDraft: emptyResearchPlanDraft(),
+    researchPlanDraft:
+      raw.schemaVersion >= 4 && raw.researchPlanDraft
+        ? raw.researchPlanDraft
+        : emptyResearchPlanDraft(),
+    choiceOrderSeed: legacyChoiceOrderSeed(raw.projectId),
+    planReviewHistory: Array.isArray(raw.planReviewHistory)
+      ? raw.planReviewHistory
+      : [],
+    activePlanVersionId:
+      typeof raw.activePlanVersionId === "string"
+        ? raw.activePlanVersionId
+        : null,
+    planReviewCompletedAt: null,
+    planChangeReasonId: null,
   });
+  return migrated as ProjectState;
 }
 
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
-    contentVersion: "0.1.2",
+    contentVersion: "0.1.3",
     createdAt: timestamp,
     updatedAt: timestamp,
     currentStage: "home",
@@ -210,6 +243,11 @@ export function createEmptyProject(now = new Date()): ProjectState {
       completedAt: null,
     },
     researchPlanDraft: emptyResearchPlanDraft(),
+    choiceOrderSeed: crypto.randomUUID(),
+    planReviewHistory: [],
+    activePlanVersionId: null,
+    planReviewCompletedAt: null,
+    planChangeReasonId: null,
     planVersions: [],
     activePlanVersion: null,
     pilot: null,

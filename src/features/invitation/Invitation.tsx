@@ -24,9 +24,11 @@ export function Invitation({
     <RichText text={text} onGlossary={onGlossary} />
   );
   return (
-    <article className="invitation" aria-labelledby="invitation-title">
+    <article className="invitation" aria-labelledby="stage-title">
       <p className="eyebrow">S01 研究への招待</p>
-      <h1 id="invitation-title">{invitationContent.question}</h1>
+      <h1 id="stage-title" tabIndex={-1}>
+        {invitationContent.question}
+      </h1>
       <p className="lead">
         まず図を眺めてください。答えを覚えるのではなく、左右で何が違うように見えるかを自分の言葉で考えてみましょう。
       </p>
@@ -56,6 +58,12 @@ export function Invitation({
           choices={motivationChoices}
           value={project.motivation?.choiceId}
           onChange={onChoice}
+          orderContext={{
+            seed: project.choiceOrderSeed,
+            themeId: project.themeId,
+            groupId: "s01-motivation",
+          }}
+          pinToEnd={["unsure"]}
         />
         <label htmlFor="motivation-note">
           任意メモ（書かなくても進められます）

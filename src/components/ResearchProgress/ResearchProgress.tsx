@@ -39,7 +39,13 @@ export function ResearchProgress({ project }: { project: ProjectState }) {
         >
           {project.researchPlanDraft.completedAt ? "✓ " : ""}研究計画
         </li>
-        <li aria-disabled="true">Miraによる研究計画レビュー（ロック中）</li>
+        <li
+          aria-current={
+            project.currentStage === "plan-review" ? "step" : undefined
+          }
+        >
+          {project.planReviewCompletedAt ? "✓ " : ""}Miraによる研究計画レビュー
+        </li>
       </ol>
       <p className="progress-summary">
         {project.researchPlanDraft.completedAt
