@@ -152,7 +152,11 @@ test("S05の六つの理由を保存し、再読込後にS06へ進める", async
   });
   for (let i = 0; i < 6; i++) await expect(restored.nth(i)).toBeChecked();
   await page.getByRole("button", { name: "研究計画案をまとめる" }).click();
-  await page.getByRole("button", { name: "Miraのレビューへ進む" }).click();
+  await expect(
+    page.getByRole("heading", { name: "研究計画案のつながりを確認する" }),
+  ).toBeVisible();
+  await expect(page.getByText("保存しました。")).toBeVisible();
+  await page.reload();
   await expect(
     page.getByRole("heading", { name: "研究計画案のつながりを確認する" }),
   ).toBeVisible();
