@@ -25,6 +25,13 @@ import {
 } from "../features/hypothesis/logic";
 import { questionMeasurementAligned } from "../features/question/logic";
 import { projectRepository } from "../persistence/projectRepository";
+import { MethodStage } from "../features/method/MethodStage";
+import { answerMethod, isCorrect } from "../features/method/logic";
+import {
+  guardReason,
+  guardStage,
+  type ImplementedStage,
+} from "../features/method/stageGuard";
 
 type LoadState = "loading" | "ready" | "error";
 const formatDate = (value: string) =>
@@ -33,6 +40,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.methodUnderstanding.completedAt) return "方法の理解 完了";
+  if (project.currentStage === "method") return "方法を確認中";
   if (project.prediction) return "仮説と予想 完了";
   if (project.researchQuestion) return "研究課題 作成中";
   if (project.motivation) return "研究への招待 完了";
@@ -106,8 +115,7 @@ function Home() {
         <h2 id="theme-title">{cosmicWebGrowthTheme.title}</h2>
         <p>{cosmicWebGrowthTheme.question}</p>
         <p className="phase-note">
-          Phase
-          1Bでは、関心から研究課題を組み立て、仮説とデータに現れる予想を記録できます。
+          Phase 1Cでは、研究課題と仮説をもとに、方法の強みと限界を確認できます。
         </p>
       </section>
       <section aria-labelledby="projects-title">
@@ -171,27 +179,34 @@ function ProjectWorkspace() {
       .then((result) => {
         if (!active) return;
         if (result) {
-          const safeStage = !result.motivation
-            ? result.currentStage === "home"
-              ? "home"
-              : "invitation"
-            : !result.researchQuestion && result.currentStage === "hypothesis"
-              ? "question"
-              : result.currentStage;
+          const requested = (
+            ["home", "invitation", "question", "hypothesis", "method"] as const
+          ).includes(result.currentStage as ImplementedStage)
+            ? (result.currentStage as ImplementedStage)
+            : "method";
+          const safeStage = guardStage(result, requested);
+          const wasGuarded = safeStage !== requested;
           const history = addMiraMessage(
             result.miraHistory,
             "introduction",
             INTRODUCTION,
             new Date(result.createdAt),
           );
+          const guardedHistory = wasGuarded
+            ? addMiraMessage(
+                history,
+                `stage-guard-${safeStage}`,
+                guardReason(safeStage),
+              )
+            : history;
           const hydrated = {
             ...result,
             currentStage: safeStage,
-            miraHistory: history,
+            miraHistory: guardedHistory,
           };
           setProject(hydrated);
           setNote(hydrated.motivation?.note ?? "");
-          if (history !== result.miraHistory)
+          if (guardedHistory !== result.miraHistory || wasGuarded)
             void projectRepository.save(hydrated);
           setSaveStatus("保存済みの状態から再開しました。");
         } else setSaveStatus("研究プロジェクトが見つかりません。");
@@ -254,15 +269,48 @@ function ProjectWorkspace() {
     void persist(next);
     setSideTab("mira");
   }
-  function goStage(stage: "invitation" | "question" | "hypothesis") {
+  function goStage(stage: ImplementedStage) {
     if (!project) return;
-    const guarded =
-      !project.motivation && stage !== "invitation" ? "invitation" : stage;
+    const guarded = guardStage(project, stage);
     void persist({
       ...project,
       currentStage: guarded,
       updatedAt: new Date().toISOString(),
+      miraHistory:
+        guarded !== stage
+          ? addMiraMessage(
+              project.miraHistory,
+              `stage-guard-${guarded}`,
+              guardReason(guarded),
+            )
+          : project.miraHistory,
     });
+  }
+  function updateMethod(questionId: string, choiceId: string) {
+    if (!project) return;
+    const now = new Date().toISOString();
+    const methodUnderstanding = answerMethod(
+      project.methodUnderstanding,
+      questionId,
+      choiceId,
+      now,
+    );
+    const correct = isCorrect(questionId, choiceId);
+    void persist({
+      ...project,
+      methodUnderstanding,
+      updatedAt: now,
+      miraHistory: addMiraMessage(
+        project.miraHistory,
+        `method-${questionId}-${choiceId}`,
+        choiceId === "unsure"
+          ? "まだわからなくても不利益はありません。私と本文の違いを一つずつ確認しましょう。"
+          : correct
+            ? "選んだ理由を教材の説明と照らしました。何を直接扱えるかという境界が研究計画の土台になります。"
+            : "回答を記録しました。正誤だけでなく、選択肢の下に示した理由を比べて再挑戦できます。",
+      ),
+    });
+    setSideTab("mira");
   }
   function updateQuestion(field: string, value: string) {
     if (!project) return;
@@ -452,6 +500,14 @@ function ProjectWorkspace() {
               project={project}
               update={updateHypothesis}
               back={() => goStage("question")}
+              next={() => goStage("method")}
+              onGlossary={openGlossary}
+            />
+          ) : project.currentStage === "method" ? (
+            <MethodStage
+              project={project}
+              onAnswer={updateMethod}
+              back={() => goStage("hypothesis")}
               onGlossary={openGlossary}
             />
           ) : (
@@ -527,7 +583,7 @@ export function App() {
             ABCs <span>Astronomy Begins with Curiosity</span>
           </a>
           <p className="prototype-status">
-            開発中のプロトタイプ — v0.1-alpha / Phase 1B
+            開発中のプロトタイプ — v0.1-alpha / Phase 1C
           </p>
         </div>
       </header>

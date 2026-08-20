@@ -49,6 +49,16 @@ const predictionSchema = z.object({
   note: z.string(),
   chosenAt: z.string().datetime(),
 });
+export const methodAnswerSchema = z.object({
+  questionId: z.string().min(1),
+  choiceId: z.string().min(1),
+  answeredAt: z.string().datetime(),
+});
+export const methodUnderstandingSchema = z.object({
+  contentId: z.string().min(1),
+  answers: z.array(methodAnswerSchema),
+  completedAt: z.string().datetime().nullable(),
+});
 const resultPackageSchema = z.object({
   packageId: z.string(),
   dataVersion: z.string(),
@@ -95,43 +105,50 @@ const base = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
+  methodUnderstanding: methodUnderstandingSchema,
 });
 export type ProjectState = z.infer<typeof projectStateSchema>;
 
 export function migrateProject(value: unknown): ProjectState {
   const raw = base
     .extend({
-      researchQuestion: z.unknown().nullable(),
-      hypothesis: z.unknown().nullable(),
-      prediction: z.unknown().nullable(),
+      researchQuestion: z.unknown().nullish(),
+      hypothesis: z.unknown().nullish(),
+      prediction: z.unknown().nullish(),
+      methodUnderstanding: z.unknown().optional(),
     })
     .parse(value);
-  if (raw.schemaVersion > 2)
+  if (raw.schemaVersion > 3)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 2) return projectStateSchema.parse(raw);
+  if (raw.schemaVersion === 3) return projectStateSchema.parse(raw);
   return projectStateSchema.parse({
     ...raw,
-    schemaVersion: 2,
-    researchQuestion: null,
-    hypothesis: null,
-    prediction: null,
+    schemaVersion: 3,
+    researchQuestion: raw.schemaVersion < 2 ? null : raw.researchQuestion,
+    hypothesis: raw.schemaVersion < 2 ? null : raw.hypothesis,
+    prediction: raw.schemaVersion < 2 ? null : raw.prediction,
+    methodUnderstanding: {
+      contentId: "method-understanding-v1",
+      answers: [],
+      completedAt: null,
+    },
   });
 }
 
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
-    contentVersion: "0.1.1",
+    contentVersion: "0.1.2",
     createdAt: timestamp,
     updatedAt: timestamp,
     currentStage: "home",
@@ -140,6 +157,11 @@ export function createEmptyProject(now = new Date()): ProjectState {
     researchQuestion: null,
     hypothesis: null,
     prediction: null,
+    methodUnderstanding: {
+      contentId: "method-understanding-v1",
+      answers: [],
+      completedAt: null,
+    },
     planVersions: [],
     activePlanVersion: null,
     pilot: null,

@@ -527,3 +527,231 @@ h1 {
     animation-duration: 0.01ms !important;
   }
 }
+/* Phase 1C: density illustration and method lesson */
+.cosmic-figure .region {
+  fill: #101b31;
+  stroke: #70809d;
+}
+.cosmic-figure .early-field {
+  fill: #39516a22;
+  stroke: none;
+}
+.cosmic-figure .tracer {
+  fill: #d9d6be;
+  stroke: none;
+}
+.cosmic-figure .late {
+  fill: #eee0b0;
+}
+.cosmic-figure .wall {
+  fill: #6f87901a;
+  stroke: #78929b44;
+  stroke-width: 2;
+}
+.cosmic-figure .void {
+  fill: #0c1629;
+  stroke: #7b8aa555;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.cosmic-figure .filament-outer {
+  fill: none;
+  stroke: #688a91;
+  opacity: 0.38;
+  stroke-linecap: round;
+}
+.cosmic-figure .filament-core {
+  fill: none;
+  stroke: #c4cac0;
+  opacity: 0.68;
+  stroke-linecap: round;
+}
+.cosmic-figure .knot-halo {
+  fill: #d4bd7b38;
+  filter: url(#soft);
+}
+.cosmic-figure .node {
+  fill: #f4df9c;
+  stroke: #f7edce;
+  stroke-width: 1;
+}
+.diagram-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+.diagram-legend button {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.35rem 0.65rem;
+}
+.diagram-legend span {
+  display: inline-block;
+  width: 24px;
+  height: 12px;
+}
+.legend-filament {
+  border-top: 5px double #a9bbc0;
+}
+.legend-node {
+  width: 12px !important;
+  border: 2px solid #f5dda0;
+  border-radius: 50%;
+}
+.legend-knot {
+  border: 3px dotted #d4bd7b;
+  border-radius: 50%;
+}
+.legend-void {
+  border: 1px dashed #9aa8c0;
+  border-radius: 50%;
+}
+.cosmic-figure details {
+  color: #cbd3e2;
+  font-size: 0.9rem;
+}
+.lesson-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 2rem 0;
+}
+.lesson-steps button {
+  min-width: 0;
+  padding: 0.55rem;
+  font-size: 0.78rem;
+}
+.lesson-steps button span {
+  display: block;
+  color: #ffdc93;
+  font-weight: 800;
+}
+.lesson-steps button[aria-current="step"] {
+  border: 2px solid #ffca69;
+  background: #3a321f;
+}
+.lesson-card {
+  padding: 1.2rem;
+  border: 1px solid #4b5c7b;
+  border-radius: 0.8rem;
+  background: #0c1629;
+}
+.step-count,
+.course-note {
+  color: #b7c5dc;
+  font-size: 0.85rem;
+}
+.lesson-navigation,
+.term-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+.term-actions button {
+  min-height: 36px;
+  padding: 0.35rem 0.6rem;
+}
+.boundary-figure {
+  margin: 1.3rem 0;
+  padding: 1rem;
+  border: 1px solid #465574;
+  border-radius: 0.7rem;
+}
+.boundary-figure svg {
+  width: 100%;
+  max-height: 220px;
+}
+.boundary-figure rect {
+  fill: #15233c;
+  stroke: #91a1bc;
+  stroke-width: 2;
+}
+.boundary-figure path {
+  fill: none;
+  stroke: #e1c57f;
+  stroke-width: 4;
+}
+.boundary-figure circle {
+  fill: #fff0b8;
+}
+.boundary-figure text {
+  fill: #eef1f6;
+}
+.text-alternative {
+  color: #bdc8db;
+  font-size: 0.85rem;
+}
+.scope-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+}
+.scope-table caption {
+  text-align: left;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.scope-table th,
+.scope-table td {
+  padding: 0.7rem;
+  border: 1px solid #53627f;
+  text-align: left;
+  vertical-align: top;
+}
+.knowledge-check {
+  margin: 1.2rem 0;
+  padding: 1rem;
+  border: 1px solid #566681;
+  border-radius: 0.7rem;
+}
+.knowledge-check.understood {
+  border: 2px solid #82b79a;
+}
+.knowledge-check legend {
+  padding: 0 0.35rem;
+  font-weight: 800;
+}
+.knowledge-check label {
+  display: block;
+  padding: 0.55rem;
+  margin: 0.35rem 0;
+  border: 1px solid #394867;
+  border-radius: 0.45rem;
+}
+.knowledge-check input {
+  margin-right: 0.6rem;
+}
+.question-status {
+  font-weight: 700;
+}
+.feedback {
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  border-left: 4px solid #e2a85c;
+  background: #211d19;
+}
+.feedback.correct {
+  border-color: #82b79a;
+  background: #10291f;
+}
+@media (max-width: 800px) {
+  .lesson-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cosmic-figure svg {
+    min-height: 430px;
+  }
+  .cosmic-figure svg > g:nth-of-type(1) {
+    transform: translate(235px, 25px);
+  }
+  .cosmic-figure .time-arrow {
+    transform: translate(65px, 130px) rotate(90deg);
+  }
+  .cosmic-figure svg > g:nth-of-type(3) {
+    transform: translate(185px, 260px);
+  }
+}
