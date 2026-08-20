@@ -40,7 +40,7 @@ describe("ホーム", () => {
       await screen.findByText("保存された研究はまだありません。"),
     ).toBeVisible();
     expect(
-      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1C"),
+      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1D"),
     ).toBeVisible();
     await userEvent.click(
       screen.getByRole("button", { name: "新しい研究を始める" }),

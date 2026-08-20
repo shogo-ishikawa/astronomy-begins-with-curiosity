@@ -7,9 +7,16 @@ interface Props {
   project: ProjectState;
   onAnswer: (questionId: string, choiceId: string) => void;
   back: () => void;
+  next?: () => void;
   onGlossary: (id: string) => void;
 }
-export function MethodStage({ project, onAnswer, back, onGlossary }: Props) {
+export function MethodStage({
+  project,
+  onAnswer,
+  back,
+  next,
+  onGlossary,
+}: Props) {
   const [section, setSection] = useState(0);
   const [attempted, setAttempted] = useState<Record<string, string>>({});
   const understood = understoodQuestionIds(project.methodUnderstanding);
@@ -185,8 +192,11 @@ export function MethodStage({ project, onAnswer, back, onGlossary }: Props) {
           <strong>✓ S04 方法の理解を完了しました</strong>
           <p>
             観測との関係、計算粒子、乱数シード、周期境界、暗黒物質のみの計算の限界を確認しました。次は研究計画です（Phase
-            1Dで実装予定）。
+            研究計画案では、値と理由を自分で選びます。
           </p>
+          <button className="primary" onClick={next ?? (() => undefined)}>
+            研究計画案を作る
+          </button>
         </div>
       ) : (
         <div className="notice" role="status">

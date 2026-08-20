@@ -6,6 +6,7 @@ const order = [
   "question",
   "hypothesis",
   "method",
+  "planning",
 ] as const;
 export type ImplementedStage = (typeof order)[number];
 export function firstAvailableStage(project: ProjectState): ImplementedStage {
@@ -14,7 +15,8 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
   if (!project.researchQuestion?.choiceId) return "question";
   if (!project.hypothesis?.choiceId || !project.prediction?.choiceId)
     return "hypothesis";
-  return "method";
+  if (!isMethodComplete(project.methodUnderstanding)) return "method";
+  return "planning";
 }
 export function guardStage(
   project: ProjectState,
@@ -35,6 +37,7 @@ export function guardReason(stage: ImplementedStage) {
     question: "研究課題の選択",
     hypothesis: "仮説と予想の選択",
     method: "方法の理解",
+    planning: "研究計画",
   };
   return `先へ進む前に、${labels[stage]}を完了しましょう。既存の回答は残っています。`;
 }

@@ -66,6 +66,89 @@ button:disabled {
   width: 100%;
   margin-top: 0.5rem;
 }
+.planning fieldset {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid #53627f;
+  border-radius: 0.75rem;
+}
+.planning legend {
+  padding: 0 0.5rem;
+  color: #fff0c5;
+  font-weight: 800;
+}
+.choice-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+.choice-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+}
+.plan-choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.65rem;
+  align-content: start;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #465574;
+  border-radius: 0.65rem;
+  background: #0b1428;
+}
+.plan-choice:has(input:checked) {
+  border: 2px solid #ffca69;
+  padding: calc(0.8rem - 1px);
+}
+.plan-choice span {
+  grid-column: 2;
+  color: #c8d2e5;
+  font-size: 0.92rem;
+}
+.metrics,
+.plan-summary,
+.validation-summary {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #53627f;
+  border-radius: 0.75rem;
+  background: #0b1428;
+}
+.metrics dl,
+.plan-summary dl {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) 2fr;
+  gap: 0.5rem 1rem;
+}
+.metrics dt,
+.plan-summary dt {
+  color: #ffce76;
+  font-weight: 700;
+}
+.metrics dd,
+.plan-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.term-link {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  border-radius: 0;
+  color: #ffe0a5;
+  background: transparent;
+}
+@media (max-width: 600px) {
+  .metrics dl,
+  .plan-summary dl {
+    grid-template-columns: 1fr;
+  }
+  .metrics dd,
+  .plan-summary dd {
+    margin-bottom: 0.6rem;
+  }
+}
 :focus-visible {
   outline: 3px solid #ffcc70;
   outline-offset: 3px;
