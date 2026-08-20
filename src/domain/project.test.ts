@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createEmptyProject, projectStateSchema } from "./project";
+import {
+  createEmptyProject,
+  migrateProject,
+  projectStateSchema,
+} from "./project";
 
 describe("ProjectState", () => {
   it("空の研究プロジェクトを有効な初期状態として作る", () => {
@@ -20,9 +24,30 @@ describe("ProjectState", () => {
     ).toThrow();
   });
 
-  it("Phase 0で作成したProjectStateを引き続き読み込める", () => {
-    const phase0 = createEmptyProject(new Date("2026-08-20T12:00:00.000Z"));
-    expect(projectStateSchema.parse(phase0).currentStage).toBe("home");
+  it.each([1, 2])("schemaVersion %sをS04初期値付きで移行する", (version) => {
+    const old: Record<string, unknown> = {
+      ...createEmptyProject(new Date("2026-08-20T12:00:00.000Z")),
+      schemaVersion: version,
+    };
+    delete old.methodUnderstanding;
+    if (version === 1) {
+      delete old.researchQuestion;
+      delete old.hypothesis;
+      delete old.prediction;
+    }
+    const migrated = migrateProject(old);
+    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.methodUnderstanding).toEqual({
+      contentId: "method-understanding-v1",
+      answers: [],
+      completedAt: null,
+    });
+  });
+
+  it("未知の将来版を拒否する", () => {
+    expect(() =>
+      migrateProject({ ...createEmptyProject(), schemaVersion: 99 }),
+    ).toThrow(/新しい版/);
   });
 
   it("motivationと重複しないglossaryViewedを保存・復元できる", () => {

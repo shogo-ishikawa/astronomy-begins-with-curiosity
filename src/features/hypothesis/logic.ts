@@ -26,7 +26,7 @@ export const predictionReasons = [
 ].map((label, i) => ({ id: `prediction-reason-${i + 1}`, label }));
 const sets: Record<string, string[]> = {
   images: [
-    "現在に近づくほどフィラメントや節が明瞭になる",
+    "現在に近づくほどフィラメントやノード（ノット）が明瞭になる",
     "現在に近づくほど分布が一様に見える",
     "時刻が変わっても見え方はほとんど変わらない",
     "まだ予想できない",

@@ -20,7 +20,7 @@ ABCsは、天文学の知識を前提としない学部生が、実際の研究�
 
 [ABCs v0.1-alpha](https://shogo-ishikawa.github.io/astronomy-begins-with-curiosity/) をGitHub Pagesで公開します。`main`への変更がマージされ、デプロイ前の品質確認に合格すると自動更新されます。
 
-研究プロジェクトのデータは外部サーバーへ送信せず、利用者のブラウザ内（IndexedDB）に保存されます。
+研究プロジェクトのデータは外部サーバへ送信せず、利用者のブラウザ内（IndexedDB）に保存されます。
 
 ## Documentation
 

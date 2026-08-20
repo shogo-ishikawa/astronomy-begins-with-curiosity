@@ -35,6 +35,9 @@
 
 ## Engineering conventions
 
+- User-facing Japanese follows the explicit terminology dictionary: use データ、ユーザ、コンピュータ、ブラウザ、サーバ、パラメータ、シミュレータ、メモリ、スナップショット、乱数シード、放射、関数、電場、磁場、重力場、放射輸送. Do not remove long vowel marks mechanically; natural forms such as 研究パートナー and エネルギー remain unchanged.
+- The formal large-scale-structure terms are 宇宙の大規模構造（コズミック・ウェブ）、フィラメント、ノード、ノット、ボイド, and only when needed ウォール（シート）. Do not use 節 or 空洞 as classification names.
+
 - Use Vite, React, TypeScript in strict mode, and npm with a committed lockfile unless the specification is explicitly revised.
 - Keep domain logic, educational content, and UI components separate. Do not embed large amounts of Japanese teaching text directly in React components.
 - Represent themes, glossary entries, Mira rules, course links, and research choices as validated data.

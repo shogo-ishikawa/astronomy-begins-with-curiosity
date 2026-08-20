@@ -19,11 +19,13 @@ export function HypothesisStage({
   project,
   update,
   back,
+  next,
   onGlossary,
 }: {
   project: ProjectState;
   update: (field: string, value: string) => void;
   back: () => void;
+  next: () => void;
   onGlossary: (id: string) => void;
 }) {
   const q = project.researchQuestion!;
@@ -202,6 +204,11 @@ export function HypothesisStage({
       )}
       <CourseConnection context="hypothesis" />
       <button onClick={back}>研究課題へ戻る</button>
+      {complete && (
+        <button className="primary" onClick={next}>
+          方法の理解へ進む
+        </button>
+      )}
     </article>
   );
 }

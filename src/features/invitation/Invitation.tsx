@@ -30,7 +30,7 @@ export function Invitation({
       <p className="lead">
         まず図を眺めてください。答えを覚えるのではなく、左右で何が違うように見えるかを自分の言葉で考えてみましょう。
       </p>
-      <CosmicWebDiagram />
+      <CosmicWebDiagram onGlossary={onGlossary} />
       <section>
         <h2>何が不思議なのでしょう</h2>
         <p>{paragraph(invitationContent.mystery)}</p>

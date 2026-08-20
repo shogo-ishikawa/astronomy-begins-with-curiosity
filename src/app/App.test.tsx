@@ -40,7 +40,7 @@ describe("ホーム", () => {
       await screen.findByText("保存された研究はまだありません。"),
     ).toBeVisible();
     expect(
-      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1B"),
+      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1C"),
     ).toBeVisible();
     await userEvent.click(
       screen.getByRole("button", { name: "新しい研究を始める" }),
@@ -74,10 +74,10 @@ describe("ホーム", () => {
     );
     expect(
       await screen.findByTitle(
-        "初期宇宙と現在に近い宇宙の物質分布を比べる模式図",
+        "同じ大きさの領域で比べた初期宇宙と現在に近い宇宙の物質密度の模式図",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/これは観察のための説明図/)).toBeVisible();
+    expect(screen.getByText(/形態を理解するための模式図/)).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "密度のむら" }));
     expect(screen.getByRole("heading", { name: "密度のむら" })).toBeVisible();
     await userEvent.click(screen.getByRole("radio", { name: /重力だけで/ }));
