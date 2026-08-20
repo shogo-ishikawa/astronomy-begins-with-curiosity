@@ -1,4 +1,8 @@
-import { type ProjectState, projectStateSchema } from "../domain/project";
+import {
+  migrateProject,
+  type ProjectState,
+  projectStateSchema,
+} from "../domain/project";
 
 const DATABASE_NAME = "abcs-projects";
 const STORE_NAME = "projects";
@@ -66,12 +70,12 @@ export const projectRepository = {
   async list(): Promise<ProjectState[]> {
     const values = await transact("readonly", (store) => store.getAll());
     return values
-      .map((value) => projectStateSchema.parse(value))
+      .map((value) => migrateProject(value))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   },
   async get(projectId: string): Promise<ProjectState | undefined> {
     const value = await transact("readonly", (store) => store.get(projectId));
-    return value === undefined ? undefined : projectStateSchema.parse(value);
+    return value === undefined ? undefined : migrateProject(value);
   },
   async save(project: ProjectState): Promise<void> {
     const validProject = projectStateSchema.parse(project);
