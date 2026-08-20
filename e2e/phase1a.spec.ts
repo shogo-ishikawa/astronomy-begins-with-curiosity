@@ -39,6 +39,9 @@ test("既存のPhase 0プロジェクト作成・一覧への復帰を維持す�
 }) => {
   await page.goto("./");
   await page.getByRole("button", { name: "新しい研究を始める" }).click();
+  await expect(
+    page.getByText("保存済みの状態から再開しました。"),
+  ).toBeVisible();
   await page.reload();
   await expect(
     page.getByText("保存済みの状態から再開しました。"),

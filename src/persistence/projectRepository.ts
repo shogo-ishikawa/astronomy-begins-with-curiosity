@@ -29,12 +29,36 @@ async function transact<T>(
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, mode);
     const request = operation(transaction.objectStore(STORE_NAME));
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () =>
-      reject(request.error ?? new Error("保存処理に失敗しました。"));
-    transaction.oncomplete = () => database.close();
-    transaction.onerror = () =>
-      reject(transaction.error ?? new Error("保存処理に失敗しました。"));
+    let requestResult: T;
+    let requestSucceeded = false;
+    let settled = false;
+
+    const close = () => {
+      settled = true;
+      database.close();
+    };
+    const fail = (error: DOMException | null) => {
+      if (settled) return;
+      close();
+      reject(error ?? new Error("保存処理に失敗しました。"));
+    };
+
+    request.onsuccess = () => {
+      requestResult = request.result;
+      requestSucceeded = true;
+    };
+    request.onerror = () => fail(request.error);
+    transaction.oncomplete = () => {
+      if (settled) return;
+      if (!requestSucceeded) {
+        fail(new DOMException("保存要求が完了しませんでした。"));
+        return;
+      }
+      close();
+      resolve(requestResult);
+    };
+    transaction.onerror = () => fail(transaction.error);
+    transaction.onabort = () => fail(transaction.error);
   });
 }
 
