@@ -44,6 +44,7 @@ import { ExecutionStage } from "../features/execution/ExecutionStage";
 import { QualityStage } from "../features/quality/QualityStage";
 import { AnalysisModeStage } from "../features/analysis/AnalysisModeStage";
 import { AnalysisStage } from "../features/analysis/AnalysisStage";
+import { artifactRelation, isGuidedResult } from "../features/analysis/records";
 import {
   planCompletionMissing,
   updateDraft,
@@ -63,7 +64,19 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
-  if (project.currentStage === "analysis") return "GUI解析と図を作成中";
+  if (project.currentStage === "analysis") {
+    const recipe = project.analysisRecipes.find(
+      (x) => x.recipeId === project.activeAnalysisRecipeId,
+    );
+    const complete =
+      recipe &&
+      project.analysisOutputs.some(
+        (x) =>
+          isGuidedResult(x) &&
+          artifactRelation(project, recipe, x) === "current",
+      );
+    return complete ? "GUI解析と図 保存済み" : "GUI解析と図を作成中";
+  }
   if (project.analysisRecipes.length) return "解析レシピ 保存済み";
   if (project.resultPackage?.refKind === "bound")
     return "結果パッケージ 取得済み（品質未確認）";

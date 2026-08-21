@@ -72,7 +72,8 @@ export function analyzeDensity(
   if (input.some((value) => value < 0))
     throw new Error("密度に負の値があります。");
   const inputMean = input.reduce((sum, value) => sum + value, 0) / input.length;
-  if (inputMean <= 0) throw new Error("密度グリッドの平均が0以下です。");
+  if (!Number.isFinite(inputMean) || inputMean <= 0)
+    throw new Error("密度グリッドの平均が有限の正数ではありません。");
   const normalized = input.map((value) => value / inputMean);
   const contrast = normalized.map((value) => value - 1);
   const normalizedMean =
@@ -121,14 +122,21 @@ export function histogram(
   boundaries: readonly number[],
 ) {
   const counts = Array<number>(boundaries.length - 1).fill(0);
-  const minimum = boundaries[0]!;
   const maximum = boundaries.at(-1)!;
-  const width = (maximum - minimum) / counts.length;
   for (const value of values) {
-    const index =
-      value === maximum
-        ? counts.length - 1
-        : Math.floor((value - minimum) / width);
+    let index: number;
+    if (value === maximum) index = counts.length - 1;
+    else {
+      // upper_bound makes an exact internal boundary part of the right bin.
+      let low = 1;
+      let high = boundaries.length;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (boundaries[middle]! <= value) low = middle + 1;
+        else high = middle;
+      }
+      index = low - 1;
+    }
     if (index < 0 || index >= counts.length)
       throw new Error("値が共通ビン境界の外です。");
     counts[index]++;
@@ -140,6 +148,24 @@ export function histogram(
     fractions: counts.map((count) => count / values.length),
     totalCellCount: values.length,
   };
+}
+
+export const SCALE_FACTOR_PLOT = { left: 55, right: 495 } as const;
+export function scaleFactorX(
+  scaleFactor: number,
+  values: readonly number[],
+): number {
+  if (!values.length || !Number.isFinite(scaleFactor))
+    throw new Error("スケール因子が不正です。");
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  if (minimum === maximum)
+    return (SCALE_FACTOR_PLOT.left + SCALE_FACTOR_PLOT.right) / 2;
+  return (
+    SCALE_FACTOR_PLOT.left +
+    ((scaleFactor - minimum) / (maximum - minimum)) *
+      (SCALE_FACTOR_PLOT.right - SCALE_FACTOR_PLOT.left)
+  );
 }
 
 export function sortByScaleFactor<

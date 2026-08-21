@@ -3,6 +3,7 @@ import {
   analyzeDensity,
   commonHistogramBoundaries,
   histogram,
+  scaleFactorX,
   sortByScaleFactor,
 } from "./numerical";
 
@@ -47,7 +48,17 @@ describe("S11 numerical contract", () => {
         histogram(values, boundaries).counts.reduce((a, b) => a + b, 0),
       ).toBe(values.length);
     expect(histogram([-1, 1], boundaries).counts.at(-1)).toBe(1);
+    const exact = boundaries[10]!;
+    expect(histogram([exact], boundaries).counts[10]).toBe(1);
     expect(commonHistogramBoundaries([[2, 2]])).toHaveLength(31);
+  });
+  it("plots irregular scale factors at proportional x coordinates", () => {
+    const factors = [0.02, 0.0909, 0.1667, 0.3333, 0.5, 1];
+    const positions = factors.map((factor) => scaleFactorX(factor, factors));
+    expect(positions[1]! - positions[0]!).toBeLessThan(
+      positions[5]! - positions[4]!,
+    );
+    expect(scaleFactorX(0.5, [0.5])).toBe(275);
   });
   it("rejects invalid inputs", () => {
     for (const input of [[], [NaN], [Infinity], [-1], [0, 0]])
