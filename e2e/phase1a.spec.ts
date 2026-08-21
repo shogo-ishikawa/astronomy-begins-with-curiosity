@@ -16,8 +16,19 @@ test("研究への招待の選択とメモを再読込後に復元する", async
   await expect(
     page.getByText("模式図（シミュレーション結果・定量図ではありません）"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "密度のむら" }).click();
-  await expect(page.getByRole("heading", { name: "密度のむら" })).toBeVisible();
+  const stageContent = page.locator("#stage-content");
+  const companionRail = page.getByRole("complementary", {
+    name: "共同研究者席",
+  });
+  await stageContent
+    .getByRole("button", { name: "密度のむら", exact: true })
+    .click();
+  await expect(
+    companionRail.getByRole("heading", {
+      name: "密度のむら",
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.getByRole("radio", { name: /いつ構造が成長したか/ }).click();
   await page
     .getByLabel("任意メモ（書かなくても進められます）")
