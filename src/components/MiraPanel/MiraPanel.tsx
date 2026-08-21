@@ -18,17 +18,17 @@ export function MiraStar({ large = false }: { large?: boolean }) {
 export function MiraPanel({
   history,
   onGlossary,
+  focus,
+  nextQuestion,
 }: {
   history: MiraMessageRecord[];
   onGlossary: (id: string) => void;
+  focus?: string;
+  nextQuestion?: string;
 }) {
   const latest = history.at(-1);
   return (
-    <section
-      className="mira-panel"
-      aria-labelledby="mira-title"
-      aria-live="polite"
-    >
+    <section className="mira-panel" aria-labelledby="mira-title">
       <header className="partner-heading">
         <MiraStar large={history.length === 1} />
         <div>
@@ -36,10 +36,19 @@ export function MiraPanel({
           <p>研究パートナー</p>
         </div>
       </header>
-      {latest ? (
-        <p>
-          <RichText text={latest.body} onGlossary={onGlossary} />
-        </p>
+      {latest || focus ? (
+        <>
+          <h3>いま考えること</h3>
+          <p aria-live="polite" aria-atomic="true">
+            <RichText text={latest?.body ?? focus!} onGlossary={onGlossary} />
+          </p>
+          {nextQuestion && (
+            <>
+              <h3>次に確かめたいこと</h3>
+              <p>{nextQuestion}</p>
+            </>
+          )}
+        </>
       ) : (
         <p>一緒に観察を始めましょう。</p>
       )}

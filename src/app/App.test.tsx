@@ -39,9 +39,7 @@ describe("ホーム", () => {
     expect(
       await screen.findByText("保存された研究はまだありません。"),
     ).toBeVisible();
-    expect(
-      screen.getByText("開発中のプロトタイプ — v0.1-alpha / Phase 1E"),
-    ).toBeVisible();
+    expect(screen.getByText("開発中のプロトタイプ — v0.1-alpha")).toBeVisible();
     await userEvent.click(
       screen.getByRole("button", { name: "新しい研究を始める" }),
     );
@@ -78,7 +76,11 @@ describe("ホーム", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/形態を理解するための模式図/)).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "密度のむら" }));
+    await userEvent.click(
+      screen
+        .getAllByRole("button", { name: "密度のむら" })
+        .find((button) => button.classList.contains("glossary-link"))!,
+    );
     expect(screen.getByRole("heading", { name: "密度のむら" })).toBeVisible();
     await userEvent.click(screen.getByRole("radio", { name: /重力だけで/ }));
     expect(
