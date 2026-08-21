@@ -5,7 +5,7 @@ export function RichText({
   onGlossary,
 }: {
   text: string;
-  onGlossary: (id: string) => void;
+  onGlossary: (id: string, source?: HTMLElement) => void;
 }) {
   const pattern = /\[\[([\w-]+)\|([^\]]+)\]\]/g;
   const nodes = [];

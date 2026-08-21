@@ -6,9 +6,9 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { GlossaryPanel } from "../components/GlossaryPanel/GlossaryPanel";
-import { MiraPanel } from "../components/MiraPanel/MiraPanel";
-import { ResearchProgress } from "../components/ResearchProgress/ResearchProgress";
+import { ResearchCycleBar } from "../components/ResearchCycleBar/ResearchCycleBar";
+import { CompanionRail } from "../components/CompanionRail/CompanionRail";
+import { supportFor } from "../content/ja/support/stageSupport";
 import { cosmicWebGrowthTheme } from "../content/ja/themes/cosmicWebGrowth";
 import {
   addMiraMessage,
@@ -139,9 +139,7 @@ function Home() {
         <p className="eyebrow">v0.1 研究テーマ</p>
         <h2 id="theme-title">{cosmicWebGrowthTheme.title}</h2>
         <p>{cosmicWebGrowthTheme.question}</p>
-        <p className="phase-note">
-          Phase 1Fでは、承認済み計画を基準に必須の試し計算を体験できます。
-        </p>
+        <p className="phase-note">v0.1-alpha</p>
       </section>
       <section aria-labelledby="projects-title">
         <div className="section-heading">
@@ -192,7 +190,8 @@ function ProjectWorkspace() {
   const [saveStatus, setSaveStatus] =
     useState("研究プロジェクトを読み込んでいます。");
   const [selectedGlossary, setSelectedGlossary] = useState<string>();
-  const [sideTab, setSideTab] = useState<"mira" | "glossary">("mira");
+  const [glossaryRequest, setGlossaryRequest] = useState(0);
+  const glossarySource = useRef<HTMLElement | null>(null);
   const [note, setNote] = useState("");
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -265,10 +264,17 @@ function ProjectWorkspace() {
       );
     }
   }, []);
-  function openGlossary(id: string) {
+  function openGlossary(id: string, source?: HTMLElement) {
     if (!project) return;
+    if (
+      !source &&
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement.classList.contains("glossary-link")
+    )
+      source = document.activeElement;
     setSelectedGlossary(id);
-    setSideTab("glossary");
+    if (source) glossarySource.current = source;
+    setGlossaryRequest((value) => value + 1);
     const viewed = project.glossaryViewed.includes(id)
       ? project.glossaryViewed
       : [...project.glossaryViewed, id];
@@ -301,7 +307,6 @@ function ProjectWorkspace() {
       ),
     };
     void persist(next);
-    setSideTab("mira");
   }
   function goStage(stage: ImplementedStage) {
     if (!project) return;
@@ -344,7 +349,6 @@ function ProjectWorkspace() {
             : "回答を記録しました。正誤だけでなく、選択肢の下に示した理由を比べて再挑戦できます。",
       ),
     });
-    setSideTab("mira");
   }
   function updatePlan(
     change: Partial<ResearchPlanDraft>,
@@ -376,7 +380,6 @@ function ProjectWorkspace() {
       );
       return next;
     });
-    setSideTab("mira");
   }
   function completePlan() {
     setProject((current) => {
@@ -553,7 +556,6 @@ function ProjectWorkspace() {
           : `「${value}」という研究判断を記録しました。次に必要な一つの選択へ進みましょう。`,
       ),
     });
-    setSideTab("mira");
   }
   function updateHypothesis(field: string, value: string) {
     if (!project?.researchQuestion) return;
@@ -623,7 +625,6 @@ function ProjectWorkspace() {
           : "仮説と予想の選択を記録しました。正誤は判定せず、両者が同じ方向かを確認します。",
       ),
     });
-    setSideTab("mira");
   }
   function updateNote(value: string) {
     setNote(value);
@@ -672,9 +673,13 @@ function ProjectWorkspace() {
           {saveStatus}
         </p>
       </div>
-      <div className="workspace-grid">
-        <ResearchProgress project={project} />
-        <section className="work-card">
+      <ResearchCycleBar project={project} />
+      <div className="research-layout">
+        <section
+          id="stage-content"
+          className="work-card"
+          aria-labelledby="stage-title"
+        >
           {project.currentStage === "home" ? (
             <div className="welcome">
               <p className="eyebrow">空の研究ワークスペース</p>
@@ -791,51 +796,23 @@ function ProjectWorkspace() {
             />
           )}
         </section>
-        <aside className="support-panel">
-          <div role="tablist" aria-label="研究サポート">
-            <button
-              role="tab"
-              aria-selected={sideTab === "mira"}
-              aria-controls="mira-tabpanel"
-              id="mira-tab"
-              onClick={() => setSideTab("mira")}
-              onKeyDown={(e) => {
-                if (e.key.startsWith("Arrow")) setSideTab("glossary");
-              }}
-            >
-              Mira
-            </button>
-            <button
-              role="tab"
-              aria-selected={sideTab === "glossary"}
-              aria-controls="glossary-tabpanel"
-              id="glossary-tab"
-              onClick={() => setSideTab("glossary")}
-              onKeyDown={(e) => {
-                if (e.key.startsWith("Arrow")) setSideTab("mira");
-              }}
-            >
-              用語解説
-            </button>
-          </div>
-          <div
-            role="tabpanel"
-            id={sideTab === "mira" ? "mira-tabpanel" : "glossary-tabpanel"}
-            aria-labelledby={sideTab === "mira" ? "mira-tab" : "glossary-tab"}
-          >
-            {sideTab === "mira" ? (
-              <MiraPanel
-                history={project.miraHistory}
-                onGlossary={openGlossary}
-              />
-            ) : (
-              <GlossaryPanel
-                selectedId={selectedGlossary}
-                onSelect={openGlossary}
-              />
-            )}
-          </div>
-        </aside>
+        <CompanionRail
+          history={project.miraHistory}
+          support={supportFor(project)}
+          selectedGlossary={selectedGlossary}
+          onGlossary={openGlossary}
+          glossaryRequest={glossaryRequest}
+          onReturn={
+            glossarySource.current
+              ? () => {
+                  const target = glossarySource.current?.isConnected
+                    ? glossarySource.current
+                    : document.getElementById("stage-title");
+                  target?.focus({ preventScroll: true });
+                }
+              : undefined
+          }
+        />
       </div>
     </main>
   );
@@ -844,17 +821,15 @@ function ProjectWorkspace() {
 export function App() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        本文へ移動
+      <a className="skip-link" href="#stage-content">
+        研究内容へ移動
       </a>
       <header className="site-header">
         <div className="site-header-content">
           <a href={`${import.meta.env.BASE_URL}#/`} aria-label="ABCs ホーム">
             ABCs <span>Astronomy Begins with Curiosity</span>
           </a>
-          <p className="prototype-status">
-            開発中のプロトタイプ — v0.1-alpha / Phase 1E
-          </p>
+          <p className="prototype-status">開発中のプロトタイプ — v0.1-alpha</p>
         </div>
       </header>
       <Routes>

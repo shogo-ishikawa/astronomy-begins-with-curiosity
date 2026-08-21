@@ -21,6 +21,7 @@ export const RESEARCH_STAGES = [
   "paper",
   "constellation",
 ] as const;
+export type ResearchStage = (typeof RESEARCH_STAGES)[number];
 const choiceRecordSchema = z.object({
   choiceId: z.string().min(1),
   note: z.string(),
