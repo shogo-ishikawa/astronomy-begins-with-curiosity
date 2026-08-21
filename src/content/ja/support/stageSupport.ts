@@ -113,10 +113,10 @@ export const stageSupport: Record<ResearchStage, StageSupportContent> = {
     ["result-package", "catalog", "manifest"],
   ),
   quality: common(
-    "品質確認",
-    "解析前にデータの品質と来歴を確かめます。",
-    "比較条件はそろっていますか？",
-    ["snapshot"],
+    "データ品質確認（S09）",
+    "ここでは科学的な結論を考えず、期待値と観測値、単位、情報源を一つずつ照合しましょう。",
+    "今の判断を直接支える証拠はどれですか？",
+    ["data-quality", "evidence", "limitation"],
   ),
   "analysis-mode": common(
     "解析方法の選択",

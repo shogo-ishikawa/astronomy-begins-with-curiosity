@@ -34,12 +34,14 @@ export function ExecutionStage({
   save,
   onGlossary,
   back,
+  next = () => undefined,
   acquirePackage = acquire,
 }: {
   project: ProjectState;
   save: (ref: BoundResultPackageRef) => Promise<void>;
   onGlossary: (id: string, source?: HTMLElement) => void;
   back: () => void;
+  next?: () => void;
   acquirePackage?: typeof acquire;
 }) {
   const plan = project.planVersions.find(
@@ -322,6 +324,9 @@ export function ExecutionStage({
             <p>
               取得できたことと、科学研究に使える品質であることは別です。ここではまだ結果を解釈しません。
             </p>
+            <button className="primary" onClick={next}>
+              取得したデータの品質を確かめる
+            </button>
           </>
         ) : (
           <p>

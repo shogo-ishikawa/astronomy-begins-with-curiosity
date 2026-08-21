@@ -52,4 +52,12 @@ export const stageLearning = {
     outcome:
       "取得と解析を区別し、選んだ結果パッケージの条件と来歴を説明できます。",
   },
+  quality: {
+    purpose:
+      "研究計画との一致、完全性、値、診断値、再現可能性を証拠から確認します。",
+    reason:
+      "機械の検査結果をそのまま合格とせず、証拠の意味と利用範囲を学生自身が判断するためです。",
+    outcome:
+      "品質の根拠、warning、limitationを区別して、解析へ進む条件を説明できます。",
+  },
 } satisfies Record<string, StageLearningFrameContent>;

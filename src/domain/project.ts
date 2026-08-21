@@ -4,6 +4,11 @@ import { legacyChoiceOrderSeed } from "./choiceOrder";
 import type { PlanReviewRecord, PlanVersion } from "../features/review/logic";
 import type { PilotRecord } from "../features/pilot/logic";
 import type { ResultPackageRef } from "../features/execution/logic";
+import type {
+  LegacyQualityRecord,
+  QualityCheckRecord,
+  QualityReviewDraft,
+} from "../features/quality/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -149,7 +154,7 @@ const base = z.object({
   resultPackage: z
     .union([resultPackageRefSchema, legacyResultPackageSchema])
     .nullable(),
-  qualityChecks: z.array(z.unknown()),
+  qualityChecks: z.array(z.unknown()).nullish(),
   analysisMode: z.enum(["gui", "python-assisted"]),
   analysisRecipe: z.unknown(),
   analysisOutputs: z.array(z.unknown()),
@@ -204,7 +209,7 @@ const researchPlanDraftSchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(7),
+  schemaVersion: z.literal(8),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
@@ -216,15 +221,23 @@ export const projectStateSchema = base.extend({
   planReviewCompletedAt: z.string().datetime().nullable(),
   planChangeReasonId: z.string().nullable(),
   pilot: z.unknown().nullable(),
+  qualityDraft: z.unknown().nullable(),
+  qualityChecks: z.array(z.unknown()),
 });
 export type ProjectState = Omit<
   z.infer<typeof projectStateSchema>,
-  "planReviewHistory" | "planVersions" | "resultPackage"
+  | "planReviewHistory"
+  | "planVersions"
+  | "resultPackage"
+  | "qualityChecks"
+  | "qualityDraft"
 > & {
   planReviewHistory: PlanReviewRecord[];
   planVersions: PlanVersion[];
   pilot: PilotRecord | null;
   resultPackage: ResultPackageRef | null;
+  qualityChecks: (QualityCheckRecord | LegacyQualityRecord)[];
+  qualityDraft: QualityReviewDraft | null;
 };
 
 export function migrateProject(value: unknown): ProjectState {
@@ -240,17 +253,26 @@ export function migrateProject(value: unknown): ProjectState {
       activePlanVersionId: z.unknown().optional(),
       planReviewCompletedAt: z.unknown().optional(),
       planChangeReasonId: z.unknown().optional(),
+      qualityDraft: z.unknown().nullish(),
     })
     .parse(value);
-  if (raw.schemaVersion > 7)
+  if (raw.schemaVersion > 8)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 7)
+  if (raw.schemaVersion === 8)
     return projectStateSchema.parse(raw) as ProjectState;
   const migrated = projectStateSchema.parse({
     ...raw,
-    schemaVersion: 7,
+    schemaVersion: 8,
+    qualityChecks:
+      raw.schemaVersion >= 8
+        ? (raw.qualityChecks ?? [])
+        : (raw.qualityChecks ?? []).map((record) => ({
+            recordKind: "legacy-unbound",
+            original: record,
+          })),
+    qualityDraft: raw.schemaVersion >= 8 ? raw.qualityDraft : null,
     resultPackage:
       raw.resultPackage && !("refKind" in raw.resultPackage)
         ? {
@@ -301,7 +323,7 @@ export function migrateProject(value: unknown): ProjectState {
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
@@ -330,6 +352,7 @@ export function createEmptyProject(now = new Date()): ProjectState {
     pilot: null,
     resultPackage: null,
     qualityChecks: [],
+    qualityDraft: null,
     analysisMode: "gui",
     analysisRecipe: {
       schemaVersion: 1,

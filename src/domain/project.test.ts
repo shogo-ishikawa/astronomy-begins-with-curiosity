@@ -36,7 +36,7 @@ describe("ProjectState", () => {
       delete old.prediction;
     }
     const migrated = migrateProject(old);
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(8);
     expect(migrated.researchPlanDraft.contentId).toBe("research-plan-v1");
     expect(migrated.methodUnderstanding).toEqual({
       contentId: "method-understanding-v1",
@@ -74,6 +74,29 @@ describe("ProjectState", () => {
     expect(() =>
       migrateProject({ ...createEmptyProject(), schemaVersion: 99 }),
     ).toThrow(/新しい版/);
+  });
+  it.each([null, []])(
+    "schema 7のqualityChecks %sをtyped historyへ移行する",
+    (value) => {
+      const old = {
+        ...createEmptyProject(),
+        schemaVersion: 7,
+        qualityChecks: value ?? [],
+      };
+      const migrated = migrateProject(old);
+      expect(migrated.qualityChecks).toEqual([]);
+      expect(migrated.qualityDraft).toBeNull();
+    },
+  );
+  it("schema 7の旧品質記録を合格扱いせず保持する", () => {
+    const migrated = migrateProject({
+      ...createEmptyProject(),
+      schemaVersion: 7,
+      qualityChecks: [{ passed: true }],
+    });
+    expect(migrated.qualityChecks).toEqual([
+      { recordKind: "legacy-unbound", original: { passed: true } },
+    ]);
   });
 
   it("motivationと重複しないglossaryViewedを保存・復元できる", () => {
