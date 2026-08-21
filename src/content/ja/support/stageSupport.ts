@@ -107,10 +107,10 @@ export const stageSupport: Record<ResearchStage, StageSupportContent> = {
     ["mean-particle-spacing", "standard-deviation", "snapshot"],
   ),
   execution: common(
-    "データ取得",
-    "計画と来歴を照合してデータを得ます。",
-    "計画した条件と一致していますか？",
-    ["snapshot"],
+    "結果パッケージの取得（S08）",
+    "データを選ぶ段階にも研究上の判断があります。計画した箱の大きさ、粒子数、宇宙の時代が一致するか、私と一緒に確かめましょう。",
+    "計画とcatalogの条件は、単位も含めて一致していますか？",
+    ["result-package", "catalog", "manifest"],
   ),
   quality: common(
     "品質確認",

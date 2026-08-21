@@ -9,6 +9,7 @@ const order = [
   "planning",
   "plan-review",
   "pilot",
+  "execution",
 ] as const;
 export type ImplementedStage = (typeof order)[number];
 export function firstAvailableStage(project: ProjectState): ImplementedStage {
@@ -21,7 +22,9 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
   if (!project.researchPlanDraft.completedAt) return "planning";
   if (!project.planReviewCompletedAt) return "plan-review";
   if (!project.pilot || project.pilot.status !== "complete") return "pilot";
-  return "pilot";
+  if (project.pilot.resultingPlanVersionId !== project.activePlanVersionId)
+    return "pilot";
+  return "execution";
 }
 export function guardStage(
   project: ProjectState,
@@ -45,6 +48,7 @@ export function guardReason(stage: ImplementedStage) {
     planning: "研究計画",
     "plan-review": "Miraによる研究計画レビュー",
     pilot: "必須の試し計算",
+    execution: "研究計画に合うデータの取得",
   };
   return `先へ進む前に、${labels[stage]}を完了しましょう。既存の回答は残っています。`;
 }

@@ -40,6 +40,7 @@ import { REVIEW_RULE_SET_ID } from "../features/review/content";
 import { PageTransitionFocusManager } from "../components/PageTransitionFocusManager/PageTransitionFocusManager";
 import { PilotStage } from "../features/pilot/PilotStage";
 import type { PilotRecord } from "../features/pilot/logic";
+import { ExecutionStage } from "../features/execution/ExecutionStage";
 import {
   planCompletionMissing,
   updateDraft,
@@ -59,6 +60,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.resultPackage?.refKind === "bound")
+    return "結果パッケージ 取得済み（品質未確認）";
   if (project.pilot?.status === "complete") return "必須の試し計算 完了";
   if (project.currentStage === "pilot") return "必須の試し計算中";
   if (project.planReviewCompletedAt) return "研究計画レビュー 完了";
@@ -213,6 +216,7 @@ function ProjectWorkspace() {
               "planning",
               "plan-review",
               "pilot",
+              "execution",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -745,6 +749,7 @@ function ProjectWorkspace() {
           ) : project.currentStage === "pilot" ? (
             <PilotStage
               project={project}
+              next={() => goStage("execution")}
               onGlossary={openGlossary}
               save={async (pilot) => {
                 await persist({
@@ -782,6 +787,20 @@ function ProjectWorkspace() {
                   planChangeReasonId: "pilot-revision",
                   currentStage: "planning",
                   updatedAt: now,
+                });
+              }}
+            />
+          ) : project.currentStage === "execution" ? (
+            <ExecutionStage
+              project={project}
+              onGlossary={openGlossary}
+              back={() => goStage("pilot")}
+              save={async (resultPackage) => {
+                await persist({
+                  ...project,
+                  resultPackage,
+                  currentStage: "execution",
+                  updatedAt: new Date().toISOString(),
                 });
               }}
             />

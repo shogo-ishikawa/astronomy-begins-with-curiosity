@@ -134,11 +134,13 @@ export function PilotStage({
   project,
   save,
   revise,
+  next,
   onGlossary,
 }: {
   project: ProjectState;
   save: (pilot: PilotRecord) => Promise<void>;
   revise: (pilot: PilotRecord) => Promise<void>;
+  next: () => void;
   onGlossary: (id: string) => void;
 }) {
   const plan = activeReviewedPlan(project);
@@ -327,6 +329,9 @@ export function PilotStage({
         <p>
           <strong>次は事前計算済み結果を取得します。</strong>
         </p>
+        <button className="primary" onClick={next}>
+          研究計画に合うデータを取得する
+        </button>
       </article>
     );
   return (
