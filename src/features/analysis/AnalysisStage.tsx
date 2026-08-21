@@ -591,8 +591,10 @@ export function AnalysisStage({
         sigmaDelta: x.statistics.sigmaDelta,
         histogram: x.histogram,
         baselineDenseFraction: x.statistics.denseFractions[1],
-        sensitivityDenseFractions: x.statistics.denseFractions.filter((d) =>
-          sensitivity.includes(d.threshold),
+        // Keep every contract threshold for an independent Python parity check;
+        // `sensitivityThresholds` still records which series the student displayed.
+        sensitivityDenseFractions: x.statistics.denseFractions.filter(
+          (d) => d.threshold !== 2,
         ),
       })),
       commonHistogramBoundaries: items[0]!.histogram.boundaries,
