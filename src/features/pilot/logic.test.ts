@@ -9,14 +9,17 @@ import {
 } from "./fixture";
 import {
   adjacentCandidates,
+  completePilotWithoutRevision,
   particleSpacing,
   relativeParticleData,
   settingsFromPlan,
   sigmaDelta,
   validateComparison,
+  type PilotRecord,
   type PilotSettings,
 } from "./logic";
 import type { PlanVersion } from "../review/logic";
+import { canEnterExecution } from "../execution/logic";
 
 const base: PilotSettings = {
   boxSizeMpcOverH: 50,
@@ -28,6 +31,21 @@ const base: PilotSettings = {
   displayGrid: 64,
   seed: 1701,
 };
+const completedPilot = (
+  decision: "maintain" | "revise" | "unsure" = "maintain",
+): PilotRecord =>
+  ({
+    status: "complete",
+    baselinePlanVersionId: "plan-1",
+    resultingPlanVersionId: null,
+    decisions: [
+      {
+        decision,
+        reason: "比較結果に基づく判断",
+        at: "2026-08-21T00:00:00.000Z",
+      },
+    ],
+  }) as PilotRecord;
 describe("pilot comparison science", () => {
   it("finds both middle and one inward edge neighbour", () => {
     expect(adjacentCandidates(50, [25, 50, 75, 100])).toEqual([25, 75]);
@@ -90,6 +108,53 @@ describe("pilot comparison science", () => {
   });
 });
 describe("pilot state compatibility", () => {
+  it("binds a maintained pilot completion to its active baseline plan", () => {
+    const completed = completePilotWithoutRevision(
+      completedPilot(),
+      "plan-1",
+      "2026-08-21T01:00:00.000Z",
+    );
+    expect(completed).toMatchObject({
+      status: "complete",
+      resultingPlanVersionId: "plan-1",
+      completedAt: "2026-08-21T01:00:00.000Z",
+    });
+  });
+  it("refuses completion when the baseline and active plan differ", () => {
+    expect(() =>
+      completePilotWithoutRevision(
+        completedPilot(),
+        "plan-2",
+        "2026-08-21T01:00:00.000Z",
+      ),
+    ).toThrow(/基準計画と現在の承認済み研究計画が一致しません/);
+  });
+  it("repairs only an unbound schema 7 maintain record and enables S08", () => {
+    const project = createEmptyProject();
+    const plan = { planVersionId: "plan-1" } as PlanVersion;
+    project.planVersions = [plan];
+    project.activePlanVersionId = "plan-1";
+    project.planReviewCompletedAt = "2026-08-21T00:00:00.000Z";
+    project.pilot = completedPilot();
+    const repaired = migrateProject(project);
+    expect(repaired.pilot?.resultingPlanVersionId).toBe("plan-1");
+    expect(canEnterExecution(repaired)).toBe(true);
+  });
+  it.each(["revise", "unsure"] as const)(
+    "does not repair a schema 7 record whose last decision is %s",
+    (decision) => {
+      const project = createEmptyProject();
+      project.activePlanVersionId = "plan-1";
+      project.pilot = completedPilot(decision);
+      expect(migrateProject(project).pilot?.resultingPlanVersionId).toBeNull();
+    },
+  );
+  it("does not repair a schema 7 record whose baseline differs", () => {
+    const project = createEmptyProject();
+    project.activePlanVersionId = "plan-2";
+    project.pilot = completedPilot();
+    expect(migrateProject(project).pilot?.resultingPlanVersionId).toBeNull();
+  });
   it("builds baseline from immutable active plan values", () => {
     const plan = {
       planVersionId: "p1",
