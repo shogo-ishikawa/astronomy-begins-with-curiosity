@@ -5,6 +5,7 @@ import {
   qualityContextFingerprint,
 } from "../quality/logic";
 import { createAcquisitionRequest, localRefState } from "../execution/logic";
+import { canEnterAnalysis } from "../analysis/logic";
 const order = [
   "home",
   "invitation",
@@ -17,6 +18,7 @@ const order = [
   "execution",
   "quality",
   "analysis-mode",
+  "analysis",
 ] as const;
 export type ImplementedStage = (typeof order)[number];
 export function firstAvailableStage(project: ProjectState): ImplementedStage {
@@ -50,7 +52,7 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
     canEnterAnalysisMode(project, qualityContextFingerprint(project, ref))
       .canEnter
   )
-    return "analysis-mode";
+    return canEnterAnalysis(project).canEnter ? "analysis" : "analysis-mode";
   return "quality";
 }
 export function guardStage(
@@ -78,6 +80,7 @@ export function guardReason(stage: ImplementedStage) {
     execution: "研究計画に合うデータの取得",
     quality: "証拠に基づくデータ品質確認",
     "analysis-mode": "解析レシピの設計",
+    analysis: "現行の解析レシピに基づく解析",
   };
   return `先へ進む前に、${labels[stage]}を完了しましょう。既存の回答は残っています。`;
 }

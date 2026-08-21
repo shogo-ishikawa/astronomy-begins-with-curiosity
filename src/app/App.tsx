@@ -43,6 +43,7 @@ import type { PilotRecord } from "../features/pilot/logic";
 import { ExecutionStage } from "../features/execution/ExecutionStage";
 import { QualityStage } from "../features/quality/QualityStage";
 import { AnalysisModeStage } from "../features/analysis/AnalysisModeStage";
+import { AnalysisStage } from "../features/analysis/AnalysisStage";
 import {
   planCompletionMissing,
   updateDraft,
@@ -62,6 +63,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.currentStage === "analysis") return "GUI解析と図を作成中";
+  if (project.analysisRecipes.length) return "解析レシピ 保存済み";
   if (project.resultPackage?.refKind === "bound")
     return "結果パッケージ 取得済み（品質未確認）";
   if (project.pilot?.status === "complete") return "必須の試し計算 完了";
@@ -221,6 +224,7 @@ function ProjectWorkspace() {
               "execution",
               "quality",
               "analysis-mode",
+              "analysis",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -829,6 +833,15 @@ function ProjectWorkspace() {
             <AnalysisModeStage
               project={project}
               onSave={persist}
+              onGlossary={openGlossary}
+              onStartAnalysis={() => goStage("analysis")}
+            />
+          ) : project.currentStage === "analysis" ? (
+            <AnalysisStage
+              project={project}
+              onSave={persist}
+              onBack={() => goStage("analysis-mode")}
+              onReacquire={() => goStage("execution")}
               onGlossary={openGlossary}
             />
           ) : (

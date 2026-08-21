@@ -124,12 +124,27 @@ export const stageSupport: Record<ResearchStage, StageSupportContent> = {
     "どの量が問いへの証拠になりますか？",
     ["measurement"],
   ),
-  analysis: common(
-    "解析",
-    "計算結果と解釈を分けて進めます。",
-    "数値から直接言えることは何ですか？",
-    ["density-contrast", "standard-deviation"],
-  ),
+  analysis: {
+    ...common(
+      "GUI解析と図（S11）",
+      "私と、平均、密度コントラスト、分布、要約値を順に計算します。傾向の原因はまだ決めません。",
+      "共通の軸、ビン境界、カラースケールになっていますか？",
+      ["density-contrast", "histogram", "standard-deviation"],
+    ),
+    figureGuide: {
+      kind: "DEMO／合成二次元密度場",
+      whatItIs: "品質確認済みの暗黒物質のみの教育用fixtureから作る数値図です。",
+      readingSteps: [
+        "軸と表示量を確認する",
+        "aとzを確認する",
+        "図と数値表を照合する",
+      ],
+      limitations: [
+        "宇宙年齢やGyrへ変換しません。",
+        "高密度セルは銀河やハローそのものではありません。",
+      ],
+    },
+  },
   interpretation: common(
     "図と解釈",
     "図から直接読める結果と解釈を区別します。",

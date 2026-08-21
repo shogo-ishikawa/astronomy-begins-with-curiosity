@@ -62,10 +62,12 @@ export function AnalysisModeStage({
   project,
   onSave,
   onGlossary,
+  onStartAnalysis,
 }: {
   project: ProjectState;
   onSave: (project: ProjectState) => Promise<boolean>;
   onGlossary: (id: string) => void;
+  onStartAnalysis: () => void;
 }) {
   const [draft, setDraft] = useState<AnalysisDesignDraft | null>(
     project.analysisDesignDraft,
@@ -444,7 +446,7 @@ export function AnalysisModeStage({
             </fieldset>
             <p>
               <strong>この段階ではPythonを実行しません。</strong>
-              次の解析段階で、同じ解析レシピをPythonコードと対応付けながら進めます。
+              S11Aでは同じ科学定義の操作解析で基準結果を確認できます。Pythonコードの組み立てと実行は、独立したS11Bで扱います。
             </p>
           </section>
           <details>
@@ -491,24 +493,23 @@ export function AnalysisModeStage({
               </li>
             ))}
           </ol>
+          <button className="primary" onClick={onStartAnalysis}>
+            解析と図の作成を始める
+          </button>
         </section>
       )}
       <section>
         <h2>用語を確認する</h2>
         {[
-          "analysis",
           "measurement",
           "density",
-          "density_contrast",
+          "density-contrast",
           "histogram",
-          "standard_deviation",
+          "standard-deviation",
           "population",
           "map",
-          "color_scale",
+          "color-scale",
           "bin",
-          "array",
-          "python",
-          "numpy",
           "hypothesis",
         ].map((id) => (
           <button
@@ -516,7 +517,20 @@ export function AnalysisModeStage({
             key={id}
             onClick={() => onGlossary(id)}
           >
-            {id}
+            {(
+              {
+                measurement: "測定量",
+                "density-contrast": "密度コントラスト",
+                histogram: "ヒストグラム",
+                "standard-deviation": "標準偏差",
+                population: "母集団",
+                "color-scale": "カラースケール",
+                bin: "ビン（階級）",
+                hypothesis: "仮説",
+                density: "密度",
+                map: "密度画像",
+              } as Record<string, string>
+            )[id] ?? id}
           </button>
         ))}
       </section>
