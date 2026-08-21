@@ -1363,3 +1363,9 @@ ProjectStateは `methodUnderstanding` 専用レコードに `contentId`、問題
 ### A.4 S11Aで確定したGUI解析数値規約
 
 Phase 3のGUI解析（S11A）とPhase 4のPython支援（S11B）を独立して実装する。S11Aは入力された規格化密度の平均を再計算してから密度コントラストを求め、30ビンのヒストグラムには解析対象の全スナップショットで共通の境界を使う。時間軸はスケール因子とし、この宇宙論をモデル化しないfixtureを宇宙年齢やGyrへ変換しない。高密度割合を主解析・主図とした場合のみ、基準 `q >= 2.0` の確認後に `1.5` または `3.0` との感度比較を完了条件とする。詳細な科学定義、定数、区間規則、将来のGUI／Python一致許容差は、版管理された単一の数値計算規約へ集約する。
+
+### A.5 S11Bで確定したPython支援
+
+S11B「Pythonで同じ解析を確かめる（発展）」はS11A完了後の任意発展とし、次段階はS12の結果解釈とする。Pyodideは `314.0.5` に固定し、学生の明示操作後にversioned jsDelivrからmodule Web Worker内へ遅延取得する。実行対象はNumPyとMatplotlibに限定し、停止は `Worker.terminate()`、再開は新しいWorkerの生成で行う。Pythonが失敗してもS11AのGUI結果で研究を継続できる。
+
+GUI/Python一致はS11Aを基準とし、浮動小数点値を `abs(python - gui) <= 1e-12 + 1e-6 * max(abs(python), abs(gui))`、セル数・順序・図メタデータを完全一致で検査する。Python結果はGUI結果を上書きしない。途中draftと、来歴・実行環境version・完成コード・数値・一致表を含む完了結果を版付きdiscriminated recordとして保存し、完了結果はappend-onlyとする。密度配列、TypedArray、PyProxy、Worker、PNG、Blob、Object URL、data URL、画像bytesは保存しない。

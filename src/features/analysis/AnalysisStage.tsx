@@ -25,6 +25,7 @@ import {
   scaleFactorX,
   type SnapshotStatistics,
 } from "./numerical";
+import { PythonAnalysisWorkspace } from "./PythonAnalysisWorkspace";
 
 export type RuntimeAnalysis = {
   id: SnapshotId;
@@ -377,6 +378,7 @@ export function AnalysisStage({
         )
     : undefined;
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [pythonOpen, setPythonOpen] = useState(false);
   const resumeTarget = useRef(currentDraft?.completedLearningStep ?? 0);
   const [step, setStep] = useState(() =>
     resumeTarget.current > 1 ? 1 : resumeTarget.current,
@@ -717,6 +719,15 @@ export function AnalysisStage({
     } else setError("解析結果と図を保存できませんでした。");
   }
   if (currentResult && !reanalyzing) {
+    if (pythonOpen)
+      return (
+        <PythonAnalysisWorkspace
+          project={project}
+          guiResult={currentResult}
+          onSave={onSave}
+          onBack={() => setPythonOpen(false)}
+        />
+      );
     const savedFigures = project.figures.filter(
       (value): value is { runId: string; title?: unknown } =>
         typeof value === "object" &&
@@ -756,6 +767,16 @@ export function AnalysisStage({
           }}
         >
           もう一度解析する
+        </button>
+        <button
+          className={
+            recipe.modeDecision.modeId === "python-with-mira"
+              ? "primary"
+              : undefined
+          }
+          onClick={() => setPythonOpen(true)}
+        >
+          Pythonで同じ解析を確かめる（発展）
         </button>
         <button onClick={onBack}>S10へ戻る</button>
       </article>
