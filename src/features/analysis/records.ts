@@ -24,8 +24,102 @@ export type GuidedAnalysisResult = {
   completedAt: string;
   caption: string;
   snapshots: unknown[];
+  commonHistogramBoundaries: number[];
+  dataVersion: string;
+  fixtureVersion: string;
   [key: string]: unknown;
 };
+
+export type PythonAnalysisDraft = {
+  recordKind: "python-analysis-draft";
+  schemaVersion: 1;
+  currentStep: number;
+  codeByStep: Record<string, string>;
+  hintLevelByStep: Record<string, number>;
+  supportLevel: "first-time" | "basic-experience" | "think-and-write";
+  referencedGuiResultId: string;
+  recipeId: string;
+  contextFingerprint: string;
+  updatedAt: string;
+};
+export type PythonAssistedAnalysisResult = {
+  recordKind: "python-assisted-analysis-result";
+  schemaVersion: 1;
+  recordId: string;
+  runId: string;
+  referencedGuiResultId: string;
+  recipeId: string;
+  contextFingerprint: string;
+  executedEngine: "pyodide-python";
+  runtime: {
+    pyodide: string;
+    python: string;
+    numpy: string;
+    matplotlib: string;
+  };
+  snapshots: unknown[];
+  parityRows: import("./pythonParity").ParityRow[];
+  createdAt: string;
+  completedAt: string;
+  [key: string]: unknown;
+};
+
+const stringRecord = (value: unknown): value is Record<string, string> =>
+  typeof value === "object" &&
+  value !== null &&
+  Object.values(value).every((x) => typeof x === "string");
+export function isPythonAnalysisDraft(
+  value: unknown,
+): value is PythonAnalysisDraft {
+  if (typeof value !== "object" || value === null) return false;
+  const x = value as Partial<PythonAnalysisDraft>;
+  return (
+    x.recordKind === "python-analysis-draft" &&
+    x.schemaVersion === 1 &&
+    Number.isInteger(x.currentStep) &&
+    x.currentStep! >= 0 &&
+    x.currentStep! <= 9 &&
+    stringRecord(x.codeByStep) &&
+    typeof x.hintLevelByStep === "object" &&
+    ["first-time", "basic-experience", "think-and-write"].includes(
+      x.supportLevel ?? "",
+    ) &&
+    typeof x.referencedGuiResultId === "string" &&
+    x.referencedGuiResultId.length > 0 &&
+    typeof x.recipeId === "string" &&
+    typeof x.contextFingerprint === "string" &&
+    typeof x.updatedAt === "string"
+  );
+}
+export function isPythonAssistedResult(
+  value: unknown,
+): value is PythonAssistedAnalysisResult {
+  if (typeof value !== "object" || value === null) return false;
+  const x = value as Partial<PythonAssistedAnalysisResult>;
+  return (
+    x.recordKind === "python-assisted-analysis-result" &&
+    x.schemaVersion === 1 &&
+    x.executedEngine === "pyodide-python" &&
+    typeof x.recordId === "string" &&
+    x.recordId.length > 0 &&
+    typeof x.runId === "string" &&
+    typeof x.referencedGuiResultId === "string" &&
+    typeof x.recipeId === "string" &&
+    typeof x.contextFingerprint === "string" &&
+    typeof x.runtime === "object" &&
+    x.runtime !== null &&
+    [
+      x.runtime.pyodide,
+      x.runtime.python,
+      x.runtime.numpy,
+      x.runtime.matplotlib,
+    ].every((v) => typeof v === "string") &&
+    Array.isArray(x.snapshots) &&
+    Array.isArray(x.parityRows) &&
+    typeof x.createdAt === "string" &&
+    typeof x.completedAt === "string"
+  );
+}
 
 type FigureBase = {
   recordKind: "scientific-figure";
@@ -124,6 +218,11 @@ export function isGuidedResult(value: unknown): value is GuidedAnalysisResult {
     typeof x.runId === "string" &&
     typeof x.recipeId === "string" &&
     typeof x.contextFingerprint === "string" &&
+    Array.isArray(x.commonHistogramBoundaries) &&
+    x.commonHistogramBoundaries.length === 31 &&
+    x.commonHistogramBoundaries.every(Number.isFinite) &&
+    typeof x.dataVersion === "string" &&
+    typeof x.fixtureVersion === "string" &&
     x.numericalContract?.id === ANALYSIS_NUMERICAL_CONTRACT_V1.id &&
     x.numericalContract?.version === ANALYSIS_NUMERICAL_CONTRACT_V1.version
   );

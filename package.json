@@ -12,7 +12,8 @@
     "typecheck": "tsc -b --pretty false",
     "validate:data": "node scripts/validate-data.mjs",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @pyodide",
+    "test:e2e:pyodide": "playwright test e2e/python-pyodide-smoke.spec.ts --workers=1",
     "preview": "vite preview"
   },
   "dependencies": {
