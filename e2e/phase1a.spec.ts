@@ -56,7 +56,11 @@ test("研究への招待の選択とメモを再読込後に復元する", async
   await expect(
     page.getByLabel("任意メモ（書かなくても進められます）"),
   ).toHaveValue("中間の変化が気になる");
-  await expect(page.getByText("関心を記録済み")).toBeVisible();
+  await expect(
+    stageContent.getByText("研究への招待を完了しました。", {
+      exact: true,
+    }),
+  ).toBeVisible();
 });
 
 test("既存のPhase 0プロジェクト作成・一覧への復帰を維持する", async ({
