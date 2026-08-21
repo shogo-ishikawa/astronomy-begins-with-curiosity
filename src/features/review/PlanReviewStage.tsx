@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { useMemo, useRef, useState } from "react";
 import type { ProjectState } from "../../domain/project";
 import { orderChoices } from "../../domain/choiceOrder";
@@ -14,6 +16,7 @@ import {
   type PlanReviewRecord,
 } from "./logic";
 import { formatSnapshotId } from "../../domain/snapshotTime";
+import { StageDecisionSummary } from "../../components/stage/StageDecisionSummary";
 
 const states = {
   "research-ready": "研究を進められる整合性があります",
@@ -85,6 +88,7 @@ export function PlanReviewStage({
       <h1 id="stage-title" tabIndex={-1}>
         研究計画案のつながりを確認する
       </h1>
+      <StageLearningFrame content={stageLearning.review} />
       <div className="mira-review-intro">
         <strong>★ Mira（研究パートナー）</strong>
         <p>
@@ -324,6 +328,20 @@ export function PlanReviewStage({
             以前の研究計画案に対するレビュー：{states[r.overallState]}
           </p>
         ))}
+      <StageDecisionSummary
+        data={{
+          purpose: "研究計画の問い、方法、測定量、図のつながりを確認すること",
+          choices: review?.studentDecision ?? "判断はまだ記録されていません",
+          evidence: review
+            ? states[review.overallState]
+            : "レビューはまだ実行されていません",
+          limitation: review?.limitationChoiceIds.length
+            ? `${review.limitationChoiceIds.length}項目を選択済み`
+            : "理由はまだ記録されていません",
+          unknown: "レビューだけでは仮説の正誤や結果の傾向は分かりません",
+          nextQuestion: "一つの条件だけを変えた試し計算で何を確かめるか",
+        }}
+      />
     </article>
   );
 }

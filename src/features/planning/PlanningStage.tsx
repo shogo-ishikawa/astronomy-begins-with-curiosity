@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { useRef, useState } from "react";
 import type { ProjectState } from "../../domain/project";
 import { orderChoices } from "../../domain/choiceOrder";
@@ -11,6 +13,8 @@ import {
   snapshots,
 } from "../../content/ja/planning";
 import { RichText } from "../../components/RichText";
+import { StageDecisionSummary } from "../../components/stage/StageDecisionSummary";
+import { ScientificQuantityExplanation } from "../../components/stage/ScientificQuantityExplanation";
 import {
   calculatePlanMetrics,
   planCompletionMissing,
@@ -48,6 +52,7 @@ export function PlanningStage({
 }) {
   const draft = project.researchPlanDraft;
   const [errors, setErrors] = useState<string[]>([]);
+  const validationRef = useRef<HTMLDivElement>(null);
   const firstRefs = useRef<Record<string, HTMLFieldSetElement | null>>({});
   const metrics =
     draft.boxSizeMpcOverH && draft.particleSide
@@ -58,7 +63,9 @@ export function PlanningStage({
     const missing = planCompletionMissing(draft);
     if (missing.length) {
       setErrors(missing.map((x) => x.label));
-      firstRefs.current[missing[0].key]?.focus();
+      requestAnimationFrame(() =>
+        validationRef.current?.focus({ preventScroll: true }),
+      );
     } else {
       setErrors([]);
       complete();
@@ -107,6 +114,7 @@ export function PlanningStage({
       <h1 id="stage-title" tabIndex={-1}>
         自分の研究計画案を組み立てる
       </h1>
+      <StageLearningFrame content={stageLearning.planning} />
       <p className="lead">
         値に唯一の正解はありません。何を明らかにしたいかと、各判断の長所・限界をつなげます。
       </p>
@@ -146,6 +154,26 @@ export function PlanningStage({
         <p>
           同じ粒子数なら、小さい箱ほど細かく標本化しやすい一方、大きな構造を含みにくくなります。大きい箱は多様な領域を含みやすい一方、粒子間隔が広がります。
         </p>
+        <ScientificQuantityExplanation
+          name="箱サイズ（L）"
+          meaning="シミュレーションで再現する立方体領域の一辺の長さです。"
+          unit="h⁻¹ Mpc"
+          tells="計算に含める領域の広さを表します。"
+          doesNotTell="箱サイズだけでは、細かな構造をどこまで表せるかは決まりません。"
+        />
+        <ScientificQuantityExplanation
+          name="平均粒子間隔の目安"
+          meaning="箱の一辺を、一辺あたりの粒子数で割った長さです。"
+          formula={
+            <>
+              <i>d</i> = <i>L</i> / <i>N</i>
+              <sub>side</sub>
+            </>
+          }
+          symbols="d は平均粒子間隔の目安、L は箱サイズ、N side は一辺あたりの粒子数"
+          tells="粒子による空間の標本化の細かさを比較できます。"
+          doesNotTell="重力の力分解能そのものではありません。"
+        />
         <p>
           <RichText
             text={planningExplanations.boxAndParticles}
@@ -465,7 +493,12 @@ export function PlanningStage({
         ))}
       </section>
       {errors.length > 0 && (
-        <div className="validation-summary" role="alert">
+        <div
+          ref={validationRef}
+          tabIndex={-1}
+          className="validation-summary"
+          role="alert"
+        >
           <h2>入力を確認してください</h2>
           <ul>
             {errors.map((x) => (
@@ -474,6 +507,25 @@ export function PlanningStage({
           </ul>
         </div>
       )}
+      <StageDecisionSummary
+        data={{
+          purpose:
+            "宇宙の時間とともに物質密度のむらがどう変化するかを調べること",
+          choices:
+            draft.boxSizeMpcOverH && draft.particleSide
+              ? `箱サイズ ${draft.boxSizeMpcOverH} h⁻¹ Mpc、一辺の粒子数 ${draft.particleSide}`
+              : "選択はまだそろっていません",
+          evidence: metrics
+            ? `平均粒子間隔の目安 ${fmt(metrics.meanParticleSpacing)} h⁻¹ Mpc と設定トレードオフ`
+            : "比較する設定値はまだそろっていません",
+          limitation: Object.values(draft.reasonIds).some(Boolean)
+            ? "記録した選択理由とレビューで確認します"
+            : "理由はまだ記録されていません",
+          unknown: "この計画だけでは、結果の傾向や銀河形成を直接確認できません",
+          nextQuestion:
+            "問い、測定量、計算条件、図が同じ目的につながっているか",
+        }}
+      />
       {draft.completedAt && (
         <div className="notice">
           <strong>研究計画案を完成しました。</strong>
@@ -485,12 +537,14 @@ export function PlanningStage({
           </button>
         </div>
       )}
-      <div className="actions">
-        <button onClick={back}>方法の理解へ戻る</button>
-        <button className="primary" onClick={finish}>
-          研究計画案をまとめる
-        </button>
-      </div>
+      {!draft.completedAt && (
+        <div className="actions">
+          <button onClick={back}>方法の理解へ戻る</button>
+          <button className="primary" onClick={finish}>
+            研究計画案をまとめる
+          </button>
+        </div>
+      )}
     </article>
   );
 }

@@ -1,9 +1,15 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { useState } from "react";
 import { methodContent } from "../../content/ja/method/content";
 import type { ProjectState } from "../../domain/project";
 import { isCorrect, understoodQuestionIds } from "./logic";
 import { PeriodicBoundaryDiagram } from "./PeriodicBoundaryDiagram";
 import { orderChoices } from "../../domain/choiceOrder";
+import { StageSectionNav } from "../../components/stage/StageSectionNav";
+import { StageSection } from "../../components/stage/StageSection";
+import { StageActions } from "../../components/stage/StageActions";
+import { StageDecisionSummary } from "../../components/stage/StageDecisionSummary";
 interface Props {
   project: ProjectState;
   onAnswer: (questionId: string, choiceId: string) => void;
@@ -22,6 +28,17 @@ export function MethodStage({
   const [attempted, setAttempted] = useState<Record<string, string>>({});
   const understood = understoodQuestionIds(project.methodUnderstanding);
   const contentSection = methodContent.sections[section];
+  const navigateSection = (id: string, focus = true) => {
+    const index = methodContent.sections.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    setSection(index);
+    if (focus)
+      requestAnimationFrame(() =>
+        document
+          .getElementById(`method-${id}-title`)
+          ?.focus({ preventScroll: true }),
+      );
+  };
   const answer = (questionId: string, choiceId: string) => {
     setAttempted((old) => ({ ...old, [questionId]: choiceId }));
     onAnswer(questionId, choiceId);
@@ -32,27 +49,33 @@ export function MethodStage({
       <h1 id="stage-title" tabIndex={-1}>
         この方法で、何がわかる？
       </h1>
+      <StageLearningFrame content={stageLearning.method} />
       <p className="lead">
         研究計画を立てる前に、方法の強みと限界を五つの段階で確かめます。仮説の正誤はここでは判定しません。
       </p>
-      <nav className="lesson-steps" aria-label="方法の教材">
-        {methodContent.sections.map((s, i) => (
-          <button
-            key={s.id}
-            aria-current={section === i ? "step" : undefined}
-            onClick={() => setSection(i)}
-          >
-            <span>{section > i ? "✓" : i + 1}</span>
-            {s.heading}
-          </button>
-        ))}
-      </nav>
-      <section
-        className="lesson-card"
-        aria-labelledby={`lesson-${contentSection.id}`}
+      <StageSectionNav
+        activeId={`method-${contentSection.id}`}
+        onNavigate={(id) => navigateSection(id.replace("method-", ""))}
+        items={methodContent.sections.map((item, index) => ({
+          id: `method-${item.id}`,
+          label: item.heading,
+          state:
+            index < section
+              ? "選択済み"
+              : index === section
+                ? "検討中"
+                : "未着手",
+        }))}
+      />
+      <StageSection
+        id={`method-${contentSection.id}`}
+        title={contentSection.heading}
+        description="研究方法の強みと限界を考える項目です。"
+        state="検討中"
+        open
+        onToggle={() => undefined}
       >
-        <p className="step-count">{section + 1} / 5</p>
-        <h2 id={`lesson-${contentSection.id}`}>{contentSection.heading}</h2>
+        <p className="eyebrow">まず観察・考える</p>
         <p className="lead">{contentSection.lead}</p>
         {contentSection.paragraphs.map((p) => (
           <p key={p}>{p}</p>
@@ -107,21 +130,15 @@ export function MethodStage({
             </button>
           ))}
         </div>
-        <div className="lesson-navigation">
-          <button
-            disabled={section === 0}
-            onClick={() => setSection(section - 1)}
-          >
-            ← 前へ
-          </button>
-          <button
-            disabled={section === 4}
-            onClick={() => setSection(section + 1)}
-          >
-            次へ →
-          </button>
-        </div>
-      </section>
+        <StageActions
+          index={section}
+          count={methodContent.sections.length}
+          onPrevious={() =>
+            navigateSection(methodContent.sections[section - 1].id)
+          }
+          onNext={() => navigateSection(methodContent.sections[section + 1].id)}
+        />
+      </StageSection>
       <section aria-labelledby="check-title">
         <p className="eyebrow">理解確認</p>
         <h2 id="check-title">理由まで説明できるか確かめる</h2>
@@ -222,6 +239,18 @@ export function MethodStage({
           </p>
         </div>
       )}
+      <StageDecisionSummary
+        data={{
+          purpose:
+            "宇宙論的N体シミュレーションで研究課題に答えられる範囲を明らかにすること",
+          choices: `${understood.size}項目の理解を確認`,
+          evidence:
+            "教材の説明、周期境界条件の模式図、暗黒物質のみの計算に含まれる物理の比較",
+          limitation: "理由はまだ記録されていません",
+          unknown: "ガス、星形成、銀河の光はこの計算から直接は分かりません",
+          nextQuestion: "どの計算条件とスナップショットを研究計画に選ぶか",
+        }}
+      />
       <button onClick={back}>← 仮説と予想へ戻る</button>
     </article>
   );

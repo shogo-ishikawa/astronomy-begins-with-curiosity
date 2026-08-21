@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { ChoiceCards } from "../../components/ChoiceCards/ChoiceCards";
 import { CourseConnection } from "../../components/CourseConnection/CourseConnection";
 import type { ProjectState } from "../../domain/project";
@@ -46,6 +48,7 @@ export function HypothesisStage({
       <h1 id="stage-title" tabIndex={-1}>
         結果を見る前の考えを記録する
       </h1>
+      <StageLearningFrame content={stageLearning.hypothesis} />
       <p>
         <button
           className="glossary-link"

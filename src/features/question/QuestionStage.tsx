@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { ChoiceCards } from "../../components/ChoiceCards/ChoiceCards";
 import { CourseConnection } from "../../components/CourseConnection/CourseConnection";
 import type { ProjectState } from "../../domain/project";
@@ -43,6 +45,7 @@ export function QuestionStage({
       <h1 id="stage-title" tabIndex={-1}>
         関心を、データで調べられる問いへ
       </h1>
+      <StageLearningFrame content={stageLearning.question} />
       <p>
         「宇宙の網目が気になる」は研究の出発点です。研究では、何を比べ、何が変わるかを含む形まで具体化します。最初から完璧な文章を書く必要はありません。一度に一つ、選択肢を組み合わせましょう。
       </p>
