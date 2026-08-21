@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { ChoiceCards } from "../../components/ChoiceCards/ChoiceCards";
 import { CourseConnection } from "../../components/CourseConnection/CourseConnection";
 import { RichText } from "../../components/RichText";
@@ -29,6 +31,7 @@ export function Invitation({
       <h1 id="stage-title" tabIndex={-1}>
         {invitationContent.question}
       </h1>
+      <StageLearningFrame content={stageLearning.invitation} />
       <p className="lead">
         まず図を眺めてください。答えを覚えるのではなく、左右で何が違うように見えるかを自分の言葉で考えてみましょう。
       </p>

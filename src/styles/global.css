@@ -1061,3 +1061,144 @@ h1 {
     transform: translate(185px, 260px);
   }
 }
+
+/* Stage-local research workspace */
+.stage-learning-frame,
+.stage-section-nav,
+.stage-section,
+.stage-decision-summary,
+.quantity-explanation {
+  border: 1px solid var(--border, #56627a);
+  border-radius: 0.75rem;
+  padding: clamp(1rem, 3cqi, 1.5rem);
+  margin-block: 1.25rem;
+  background: color-mix(in srgb, var(--panel, #121a2b) 92%, white);
+}
+.stage-learning-frame h2,
+.stage-section-nav h2 {
+  margin-block-start: 0;
+}
+.stage-learning-frame dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+.stage-learning-frame dl > div {
+  border-inline-start: 3px solid var(--accent, #e6bd67);
+  padding-inline-start: 0.8rem;
+}
+.stage-learning-frame dt,
+.stage-decision-summary dt,
+.quantity-explanation dt {
+  font-weight: 700;
+}
+.stage-learning-frame dd,
+.stage-decision-summary dd,
+.quantity-explanation dd {
+  margin: 0.35rem 0 0;
+}
+.stage-section-nav ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0.65rem;
+  padding: 0;
+  list-style-position: inside;
+}
+.stage-section-nav button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  text-align: start;
+}
+.stage-section-nav button[aria-current="step"] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.stage-section-status {
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.stage-section-status[data-state="確認が必要"] {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+.stage-section-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.stage-section-heading h2 {
+  margin-block: 0 0.4rem;
+  scroll-margin-block: 5rem;
+}
+.stage-section-heading button,
+.stage-actions button {
+  min-height: 44px;
+}
+.stage-section-content {
+  margin-block-start: 1rem;
+}
+.stage-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-start: 1.25rem;
+}
+.stage-decision-summary dl {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.35fr) 1fr;
+  gap: 0.65rem 1rem;
+}
+.self-check {
+  border-block-start: 1px solid currentColor;
+  margin-block-start: 1rem;
+  padding-block-start: 0.75rem;
+}
+.quantity-explanation .formula {
+  font-size: 1.15rem;
+}
+.validation-summary:focus {
+  outline: 3px solid currentColor;
+  outline-offset: 4px;
+}
+.plan-choice:has(input:checked)::after {
+  content: "選択中";
+  display: block;
+  font-weight: 700;
+  text-decoration: underline;
+}
+@container (max-width: 520px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .stage-learning-frame dl {
+    grid-template-columns: 1fr;
+  }
+  .stage-section-heading,
+  .stage-actions {
+    flex-direction: column;
+  }
+  .stage-actions button {
+    width: 100%;
+  }
+  .stage-actions .primary {
+    order: 2;
+  }
+  .stage-decision-summary dl {
+    grid-template-columns: 1fr;
+  }
+}
+@media (forced-colors: active) {
+  .plan-choice:has(input:checked),
+  .stage-section-nav button[aria-current="step"] {
+    border: 2px solid Highlight;
+  }
+}

@@ -1,3 +1,5 @@
+import { StageLearningFrame } from "../../components/stage/StageLearningFrame";
+import { stageLearning } from "../../content/ja/stageLearning";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectState } from "../../domain/project";
 import { orderChoices } from "../../domain/choiceOrder";
@@ -176,6 +178,7 @@ export function PilotStage({
     return (
       <article>
         <h1 id="stage-title">必須の試し計算</h1>
+        <StageLearningFrame content={stageLearning.pilot} />
         <p>現在の研究内容に対応した承認済み計画がありません。S06へ戻ります。</p>
       </article>
     );
@@ -314,6 +317,7 @@ export function PilotStage({
       <article className="stage">
         <p className="eyebrow">S07 / 必須の試し計算</p>
         <h1 id="stage-title">試し計算を完了しました</h1>
+        <StageLearningFrame content={stageLearning.pilot} />
         <p className="demo-label">DEMO / synthetic fixture</p>
         <p>{warning}</p>
         <p>
@@ -329,6 +333,7 @@ export function PilotStage({
     <article className="stage pilot">
       <p className="eyebrow">S07 / 必須の試し計算</p>
       <h1 id="stage-title">一つだけ変えて、予想と結果を比べる</h1>
+      <StageLearningFrame content={stageLearning.pilot} />
       <div className="demo-banner">
         <strong>DEMO / synthetic fixture</strong>
         <p>{warning}</p>
