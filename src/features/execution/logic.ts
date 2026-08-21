@@ -297,6 +297,70 @@ async function responseJson(response: Response) {
     throw Error(`データを読み込めませんでした（HTTP ${response.status}）。`);
   return response.json();
 }
+export type RuntimeResultPackage = {
+  catalog: ResultCatalog;
+  manifest: ResultManifest;
+  snapshots: { id: SnapshotId; values: Float32Array }[];
+};
+/** Shared safe loader used by acquisition and every later data stage. */
+export async function reloadResultPackage(
+  ref: BoundResultPackageRef,
+  baseUrl = import.meta.env.BASE_URL,
+  fetcher: typeof fetch = fetch,
+  signal?: AbortSignal,
+): Promise<RuntimeResultPackage> {
+  const request: AcquisitionRequest = {
+    themeId: "cosmic-web-growth",
+    planVersionId: ref.planVersionId,
+    planSubjectHash: ref.planSubjectHash,
+    boxSizeMpcOverH: ref.boxSizeMpcOverH,
+    particleSide: ref.particleSide,
+    snapshotIds: canonicalSnapshots(ref.requestedSnapshotIds),
+    projection: ref.grid.projection,
+    quantity: ref.grid.quantity,
+  };
+  const catalog = catalogSchema.parse(
+    await responseJson(
+      await fetcher(resolveDataUrl(baseUrl, "catalog.json"), { signal }),
+    ),
+  );
+  const entry = findExactPackage(catalog, request);
+  if (entry.manifestPath !== ref.manifestPath)
+    throw Error("catalogの参照先が取得記録と一致しません。");
+  const manifest = validateManifestForRequest(
+    manifestSchema.parse(
+      await responseJson(
+        await fetcher(resolveDataUrl(baseUrl, entry.manifestPath), { signal }),
+      ),
+    ),
+    request,
+  );
+  if (
+    ref.catalogVersion !== catalog.catalogVersion ||
+    ref.packageId !== manifest.packageId ||
+    ref.dataVersion !== manifest.dataVersion ||
+    ref.fixtureVersion !== manifest.payload.fixtureVersion ||
+    ref.acquisitionFingerprint !==
+      acquisitionFingerprint(
+        request,
+        catalog.catalogVersion,
+        manifest.packageId,
+        manifest.dataVersion,
+        manifest.payload.fixtureVersion,
+      )
+  )
+    throw Error(
+      "取得後にcatalogまたはmanifestが変更されています。再取得してください。",
+    );
+  return {
+    catalog,
+    manifest,
+    snapshots: request.snapshotIds.map((id) => ({
+      id,
+      values: generateSnapshot(manifest, id),
+    })),
+  };
+}
 export type RefState = "current" | "stale" | "unverifiable";
 export function localRefState(
   ref: ResultPackageRef | null,

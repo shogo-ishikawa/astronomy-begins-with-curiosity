@@ -611,6 +611,23 @@ h1 {
   }
 }
 
+.choice-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0.35rem;
+}
+.quality-feedback {
+  margin-top: 1rem;
+  border-inline-start: 4px solid var(--accent, #d6a84b);
+  padding: 0.75rem 1rem;
+}
+.table-scroll code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 /* Research workspace and companion seat */
 .workspace,
 .site-header-content {

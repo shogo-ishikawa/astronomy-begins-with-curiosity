@@ -41,6 +41,7 @@ import { PageTransitionFocusManager } from "../components/PageTransitionFocusMan
 import { PilotStage } from "../features/pilot/PilotStage";
 import type { PilotRecord } from "../features/pilot/logic";
 import { ExecutionStage } from "../features/execution/ExecutionStage";
+import { QualityStage } from "../features/quality/QualityStage";
 import {
   planCompletionMissing,
   updateDraft,
@@ -217,6 +218,7 @@ function ProjectWorkspace() {
               "plan-review",
               "pilot",
               "execution",
+              "quality",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -256,16 +258,18 @@ function ProjectWorkspace() {
       active = false;
     };
   }, [projectId]);
-  const persist = useCallback(async (next: ProjectState) => {
+  const persist = useCallback(async (next: ProjectState): Promise<boolean> => {
     setProject(next);
     setSaveStatus("保存しています…");
     try {
       await projectRepository.save(next);
       setSaveStatus("保存しました。");
+      return true;
     } catch {
       setSaveStatus(
         "保存できませんでした。再試行するか、あとで記録を控えてください。",
       );
+      return false;
     }
   }, []);
   function openGlossary(id: string, source?: HTMLElement) {
@@ -795,6 +799,7 @@ function ProjectWorkspace() {
               project={project}
               onGlossary={openGlossary}
               back={() => goStage("pilot")}
+              next={() => goStage("quality")}
               save={async (resultPackage) => {
                 await persist({
                   ...project,
@@ -803,6 +808,13 @@ function ProjectWorkspace() {
                   updatedAt: new Date().toISOString(),
                 });
               }}
+            />
+          ) : project.currentStage === "quality" ? (
+            <QualityStage
+              project={project}
+              onGlossary={openGlossary}
+              onSave={persist}
+              onReacquire={() => goStage("execution")}
             />
           ) : (
             <Invitation
