@@ -36,7 +36,7 @@ describe("ProjectState", () => {
       delete old.prediction;
     }
     const migrated = migrateProject(old);
-    expect(migrated.schemaVersion).toBe(8);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.researchPlanDraft.contentId).toBe("research-plan-v1");
     expect(migrated.methodUnderstanding).toEqual({
       contentId: "method-understanding-v1",

@@ -427,8 +427,14 @@ export function canEnterAnalysisMode(
     ids = latest?.machineResults.map((x) => x.checkId) ?? [];
   const ok = Boolean(
     project.planReviewCompletedAt &&
+      project.activePlanVersionId &&
+      project.planVersions.some(
+        (plan) => plan.planVersionId === project.activePlanVersionId,
+      ) &&
       project.pilot?.status === "complete" &&
+      project.pilot.resultingPlanVersionId === project.activePlanVersionId &&
       project.resultPackage?.refKind === "bound" &&
+      project.resultPackage.planVersionId === project.activePlanVersionId &&
       latest &&
       latest.ruleSetId === QUALITY_RULESET_V1.id &&
       new Set(ids).size === 6 &&

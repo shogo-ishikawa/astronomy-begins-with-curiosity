@@ -372,9 +372,12 @@ R_N = \left(\frac{N_{side}}{32}\right)^3
 
 高密度領域の割合（補助）:
 
-- 初期値は `rho / mean(rho) > 5` とする。
-- 閾値は学生が変更できる。
+- 基準解析は `rho / mean(rho) >= 2.0`（すなわち `delta >= 1`）を固定して用い、学生間で比較可能にする。
+- 基準解析後の比較では `1.5 / 2.0 / 3.0` の離散プリセットから学生が選ぶ。自由入力と連続スライダはv0.1では実装しない。
+- 演算子は仕様、TypeScript、Python、UI、テストで `>=` に統一する。
 - グリッド分解能と平滑化に依存することを限界として示す。
+- 閾値は普遍的な物理境界ではなく、グリッド分解能、平滑化、データ範囲に依存する。
+- AnalysisRecipeと解析結果には、閾値、演算子、`delta`との対応、該当セル数、全セル数、割合を記録する。
 
 二点相関関数（発展）:
 
@@ -770,7 +773,14 @@ Miraは次を検出する。
     "smoothing": { "method": "none", "sigmaCells": 0 }
   },
   "histogram": { "bins": 30 },
-  "highDensity": { "rhoOverMeanThreshold": 5 },
+  "highDensity": {
+    "quantity": "rho_over_mean",
+    "operator": ">=",
+    "rhoOverMeanThreshold": 2,
+    "deltaOperator": ">=",
+    "deltaThreshold": 1,
+    "resultFields": ["matchingCellCount", "totalCellCount", "fraction"]
+  },
   "figures": ["density-grid", "delta-histogram", "sigma-growth"]
 }
 ```
@@ -1300,7 +1310,7 @@ v0.1の構造は次を追加可能にしておくが、先行実装しない。
 3. 各設定の実計算時間、メモリ、出力量
 4. 投影密度グリッドの最終shape
 5. 固定カラースケールの範囲
-6. 高密度閾値の初期値が教材データで適切か
+6. 基準解析後の比較用高密度閾値プリセットが教材データで適切か
 7. Pyodideの固定版と配信方法
 
 これらの値は定数へ散在させず、manifestまたは設定ファイルへ集約する。

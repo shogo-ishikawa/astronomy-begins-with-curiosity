@@ -10,6 +10,10 @@ import type {
   QualityCheckRecord,
   QualityReviewDraft,
 } from "../features/quality/logic";
+import type {
+  AnalysisDesignDraft,
+  AnalysisRecipeRecord,
+} from "../features/analysis/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -210,7 +214,7 @@ const researchPlanDraftSchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(8),
+  schemaVersion: z.literal(9),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
@@ -224,6 +228,10 @@ export const projectStateSchema = base.extend({
   pilot: z.unknown().nullable(),
   qualityDraft: z.unknown().nullable(),
   qualityChecks: z.array(z.unknown()),
+  analysisDesignDraft: z.unknown().nullable(),
+  analysisRecipes: z.array(z.unknown()),
+  activeAnalysisRecipeId: z.string().nullable(),
+  legacyAnalysisSetup: z.unknown().nullable(),
 });
 export type ProjectState = Omit<
   z.infer<typeof projectStateSchema>,
@@ -232,6 +240,8 @@ export type ProjectState = Omit<
   | "resultPackage"
   | "qualityChecks"
   | "qualityDraft"
+  | "analysisDesignDraft"
+  | "analysisRecipes"
 > & {
   planReviewHistory: PlanReviewRecord[];
   planVersions: PlanVersion[];
@@ -239,6 +249,10 @@ export type ProjectState = Omit<
   resultPackage: ResultPackageRef | null;
   qualityChecks: (QualityCheckRecord | LegacyQualityRecord)[];
   qualityDraft: QualityReviewDraft | null;
+  analysisDesignDraft: AnalysisDesignDraft | null;
+  analysisRecipes: AnalysisRecipeRecord[];
+  activeAnalysisRecipeId: string | null;
+  legacyAnalysisSetup: unknown;
 };
 
 export function migrateProject(value: unknown): ProjectState {
@@ -255,13 +269,17 @@ export function migrateProject(value: unknown): ProjectState {
       planReviewCompletedAt: z.unknown().optional(),
       planChangeReasonId: z.unknown().optional(),
       qualityDraft: z.unknown().nullish(),
+      analysisDesignDraft: z.unknown().nullish(),
+      analysisRecipes: z.unknown().optional(),
+      activeAnalysisRecipeId: z.unknown().nullish(),
+      legacyAnalysisSetup: z.unknown().nullish(),
     })
     .parse(value);
-  if (raw.schemaVersion > 8)
+  if (raw.schemaVersion > 9)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 8) {
+  if (raw.schemaVersion === 9) {
     const current = projectStateSchema.parse(raw) as ProjectState;
     return {
       ...current,
@@ -273,7 +291,21 @@ export function migrateProject(value: unknown): ProjectState {
   }
   const migrated = projectStateSchema.parse({
     ...raw,
-    schemaVersion: 8,
+    schemaVersion: 9,
+    analysisDesignDraft:
+      raw.schemaVersion >= 9 ? raw.analysisDesignDraft : null,
+    analysisRecipes:
+      raw.schemaVersion >= 9 && Array.isArray(raw.analysisRecipes)
+        ? raw.analysisRecipes
+        : [],
+    activeAnalysisRecipeId:
+      raw.schemaVersion >= 9 && typeof raw.activeAnalysisRecipeId === "string"
+        ? raw.activeAnalysisRecipeId
+        : null,
+    legacyAnalysisSetup:
+      raw.schemaVersion < 9
+        ? { analysisMode: raw.analysisMode, analysisRecipe: raw.analysisRecipe }
+        : raw.legacyAnalysisSetup,
     qualityChecks:
       raw.schemaVersion >= 8
         ? (raw.qualityChecks ?? [])
@@ -339,11 +371,11 @@ export function migrateProject(value: unknown): ProjectState {
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
-    contentVersion: "0.1.4",
+    contentVersion: "0.1.5",
     createdAt: timestamp,
     updatedAt: timestamp,
     currentStage: "home",
@@ -369,6 +401,10 @@ export function createEmptyProject(now = new Date()): ProjectState {
     resultPackage: null,
     qualityChecks: [],
     qualityDraft: null,
+    analysisDesignDraft: null,
+    analysisRecipes: [],
+    activeAnalysisRecipeId: null,
+    legacyAnalysisSetup: null,
     analysisMode: "gui",
     analysisRecipe: {
       schemaVersion: 1,
@@ -377,7 +413,13 @@ export function createEmptyProject(now = new Date()): ProjectState {
         smoothing: { method: "none", sigmaCells: 0 },
       },
       histogram: { bins: 30 },
-      highDensity: { rhoOverMeanThreshold: 5 },
+      highDensity: {
+        quantity: "rho_over_mean",
+        operator: ">=",
+        rhoOverMeanThreshold: 2,
+        deltaOperator: ">=",
+        deltaThreshold: 1,
+      },
       figures: [],
     },
     analysisOutputs: [],

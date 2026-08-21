@@ -1,5 +1,9 @@
 import type { ProjectState } from "../../domain/project";
 import { isMethodComplete } from "./logic";
+import {
+  canEnterAnalysisMode,
+  qualityContextFingerprint,
+} from "../quality/logic";
 const order = [
   "home",
   "invitation",
@@ -11,6 +15,7 @@ const order = [
   "pilot",
   "execution",
   "quality",
+  "analysis-mode",
 ] as const;
 export type ImplementedStage = (typeof order)[number];
 export function firstAvailableStage(project: ProjectState): ImplementedStage {
@@ -27,6 +32,16 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
     return "pilot";
   if (project.resultPackage?.refKind !== "bound") return "execution";
   if (project.currentStage === "quality") return "quality";
+  if (project.currentStage === "analysis-mode") {
+    const ref = project.resultPackage;
+    if (
+      ref?.refKind === "bound" &&
+      canEnterAnalysisMode(project, qualityContextFingerprint(project, ref))
+        .canEnter
+    )
+      return "analysis-mode";
+    return "quality";
+  }
   return "execution";
 }
 export function guardStage(
@@ -53,6 +68,7 @@ export function guardReason(stage: ImplementedStage) {
     pilot: "必須の試し計算",
     execution: "研究計画に合うデータの取得",
     quality: "証拠に基づくデータ品質確認",
+    "analysis-mode": "解析レシピの設計",
   };
   return `先へ進む前に、${labels[stage]}を完了しましょう。既存の回答は残っています。`;
 }

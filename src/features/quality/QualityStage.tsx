@@ -17,6 +17,7 @@ import {
   assessmentMatches,
   qualityContextFingerprint,
   qualityRecordRelation,
+  canEnterAnalysisMode,
   runQualityChecks,
   stableShuffle,
   type MachineQualityResult,
@@ -31,11 +32,13 @@ export function QualityStage({
   onSave,
   onReacquire,
   onGlossary,
+  onStartAnalysis,
 }: {
   project: ProjectState;
   onSave: (p: ProjectState) => Promise<boolean>;
   onReacquire: () => void;
   onGlossary: (id: string) => void;
+  onStartAnalysis: () => void;
 }) {
   const ref =
     project.resultPackage?.refKind === "bound" ? project.resultPackage : null;
@@ -475,10 +478,10 @@ export function QualityStage({
         ) : (
           <p>完成した品質確認記録はまだありません。</p>
         )}{" "}
-        {completed.at(-1)?.overallOutcome === "approved-with-conditions" && (
-          <p className="next-preview">
-            次は解析方法を選びます（この段階では操作できません）。
-          </p>
+        {canEnterAnalysisMode(project, fingerprint).canEnter && (
+          <button className="primary" onClick={onStartAnalysis}>
+            解析方法を組み立てる
+          </button>
         )}
       </section>
     </article>
