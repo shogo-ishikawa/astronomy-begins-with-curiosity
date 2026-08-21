@@ -2,7 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmptyProject, type ProjectState } from "../domain/project";
+import {
+  createEmptyProject,
+  migrateProject,
+  type ProjectState,
+} from "../domain/project";
+import type { PlanVersion } from "../features/review/logic";
+import { methodContent } from "../content/ja/method/content";
 import { projectRepository } from "../persistence/projectRepository";
 import { App } from "./App";
 
@@ -119,5 +125,119 @@ describe("ホーム", () => {
     expect(
       screen.getByRole("button", { name: "続きから始める" }),
     ).toBeEnabled();
+  });
+
+  it("S07の完了操作後にstrict guardを通ってS08を表示し、再読込でも復旧する", async () => {
+    const project = createEmptyProject();
+    const plan = {
+      planVersionId: "plan-1",
+      versionNumber: 1,
+      subjectHash: "subject-1",
+      subjectSnapshot: {
+        draft: {
+          primaryAnalysis: "sigma-delta",
+          plannedFigure: "sigma-growth",
+        },
+      },
+      resolved: {
+        boxSizeMpcOverH: 50,
+        particleSide: 32,
+        totalParticles: 32768,
+        boxSizeUnit: "h^-1 Mpc",
+        snapshotIds: ["initial", "z10", "z2", "z0"],
+      },
+    } as PlanVersion;
+    project.currentStage = "pilot";
+    const chosenAt = "2026-08-21T00:00:00.000Z";
+    project.motivation = { choiceId: "formation", note: "", chosenAt };
+    project.researchQuestion = {
+      choiceId: "growth",
+      measurementId: "sigma-delta",
+      timeFocusId: "history",
+      spaceFocusId: "balance",
+      alignment: { status: "aligned", acknowledged: true, reasonId: null },
+      note: "",
+      chosenAt,
+    };
+    project.hypothesis = { choiceId: "growth", note: "", chosenAt };
+    project.prediction = {
+      choiceId: "increase",
+      direction: "increase",
+      reasonId: "gravity",
+      alignment: { status: "aligned", acknowledged: true, reasonId: null },
+      note: "",
+      chosenAt,
+    };
+    project.methodUnderstanding.answers = methodContent.questions
+      .filter((question) => question.required)
+      .map((question) => ({
+        questionId: question.id,
+        choiceId: question.correctChoiceId,
+        answeredAt: "2026-08-21T00:00:00.000Z",
+      }));
+    project.methodUnderstanding.completedAt = "2026-08-21T00:00:00.000Z";
+    project.researchPlanDraft.completedAt = "2026-08-21T00:00:00.000Z";
+    project.planVersions = [plan];
+    project.activePlanVersionId = plan.planVersionId;
+    project.planReviewCompletedAt = "2026-08-21T00:00:00.000Z";
+    project.pilot = {
+      status: "complete",
+      baselinePlanVersionId: plan.planVersionId,
+      baseline: {
+        boxSizeMpcOverH: 50,
+        particleSide: 32,
+        snapshotId: "z0",
+        projection: "xy",
+        densityEstimator: "demo-multiscale-field",
+        smoothing: "matched-v1",
+        displayGrid: 64,
+        seed: 1701,
+      },
+      resultingPlanVersionId: plan.planVersionId,
+      decisions: [
+        {
+          decision: "maintain",
+          reason: "比較結果に基づく判断",
+          at: "2026-08-21T00:00:00.000Z",
+        },
+      ],
+    } as never;
+    savedProject = project;
+
+    const first = render(
+      <MemoryRouter initialEntries={[`/projects/${project.projectId}`]}>
+        <App />
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "研究計画に合うデータを取得する",
+      }),
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "研究計画に合うデータを取得する",
+      }),
+    ).toBeVisible();
+    first.unmount();
+
+    savedProject = migrateProject({
+      ...project,
+      currentStage: "execution",
+      pilot: {
+        ...(project.pilot as unknown as Record<string, unknown>),
+        resultingPlanVersionId: null,
+      },
+    });
+    render(
+      <MemoryRouter initialEntries={[`/projects/${project.projectId}`]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "研究計画に合うデータを取得する",
+      }),
+    ).toBeVisible();
   });
 });

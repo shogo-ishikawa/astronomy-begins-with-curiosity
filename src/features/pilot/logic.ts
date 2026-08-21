@@ -130,3 +130,41 @@ export function activeReviewedPlan(project: ProjectState) {
 export function isPilotComplete(project: ProjectState) {
   return project.pilot?.status === "complete";
 }
+
+export function completePilotWithoutRevision(
+  pilot: PilotRecord,
+  activePlanVersionId: string | null,
+  completedAt: string,
+): PilotRecord {
+  if (
+    !activePlanVersionId ||
+    pilot.baselinePlanVersionId !== activePlanVersionId
+  )
+    throw new Error(
+      "試し計算の基準計画と現在の承認済み研究計画が一致しません。研究計画レビューから確認してください。",
+    );
+  return {
+    ...pilot,
+    status: "complete",
+    resultingPlanVersionId: pilot.baselinePlanVersionId,
+    completedAt,
+  };
+}
+
+export function repairCompletedMaintainPilot(
+  pilot: PilotRecord | null,
+  activePlanVersionId: string | null,
+): PilotRecord | null {
+  if (
+    !pilot ||
+    pilot.status !== "complete" ||
+    pilot.resultingPlanVersionId !== null ||
+    !activePlanVersionId ||
+    pilot.baselinePlanVersionId !== activePlanVersionId ||
+    !Array.isArray(pilot.decisions) ||
+    pilot.decisions.length === 0 ||
+    pilot.decisions.at(-1)?.decision !== "maintain"
+  )
+    return pilot;
+  return { ...pilot, resultingPlanVersionId: activePlanVersionId };
+}

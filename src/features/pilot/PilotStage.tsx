@@ -14,6 +14,7 @@ import {
   activeReviewedPlan,
   adjacentCandidates,
   boxCandidates,
+  completePilotWithoutRevision,
   particleCandidates,
   particleSpacing,
   relativeParticleData,
@@ -304,9 +305,19 @@ export function PilotStage({
         ...pilot,
         decisions: [...pilot.decisions, { decision, reason, at: now }],
       };
-    if (decision === "maintain")
-      await save({ ...next, status: "complete", completedAt: now });
-    else if (decision === "revise")
+    if (decision === "maintain") {
+      try {
+        await save(
+          completePilotWithoutRevision(next, project.activePlanVersionId, now),
+        );
+      } catch (error) {
+        fail(
+          error instanceof Error
+            ? error.message
+            : "試し計算を完了できませんでした。",
+        );
+      }
+    } else if (decision === "revise")
       await revise({
         ...next,
         status: "awaiting-rereview",
