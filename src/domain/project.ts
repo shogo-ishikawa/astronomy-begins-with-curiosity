@@ -3,6 +3,7 @@ import { emptyResearchPlanDraft } from "../features/planning/logic";
 import { legacyChoiceOrderSeed } from "./choiceOrder";
 import type { PlanReviewRecord, PlanVersion } from "../features/review/logic";
 import type { PilotRecord } from "../features/pilot/logic";
+import { repairCompletedMaintainPilot } from "../features/pilot/logic";
 import type { ResultPackageRef } from "../features/execution/logic";
 import type {
   LegacyQualityRecord,
@@ -260,8 +261,16 @@ export function migrateProject(value: unknown): ProjectState {
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 8)
-    return projectStateSchema.parse(raw) as ProjectState;
+  if (raw.schemaVersion === 7) {
+    const current = projectStateSchema.parse(raw) as ProjectState;
+    return {
+      ...current,
+      pilot: repairCompletedMaintainPilot(
+        current.pilot,
+        current.activePlanVersionId,
+      ),
+    };
+  }
   const migrated = projectStateSchema.parse({
     ...raw,
     schemaVersion: 8,
@@ -317,7 +326,14 @@ export function migrateProject(value: unknown): ProjectState {
         ? raw.planChangeReasonId
         : null,
   });
-  return migrated as ProjectState;
+  const project = migrated as ProjectState;
+  return {
+    ...project,
+    pilot: repairCompletedMaintainPilot(
+      project.pilot,
+      project.activePlanVersionId,
+    ),
+  };
 }
 
 export function createEmptyProject(now = new Date()): ProjectState {

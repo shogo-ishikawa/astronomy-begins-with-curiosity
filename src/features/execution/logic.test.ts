@@ -87,6 +87,8 @@ describe("S08 acquisition domain", () => {
     p.planReviewCompletedAt = new Date().toISOString();
     p.pilot = { status: "complete", resultingPlanVersionId: "other" } as never;
     expect(canEnterExecution(p)).toBe(false);
+    p.pilot = { status: "complete", resultingPlanVersionId: null } as never;
+    expect(canEnterExecution(p)).toBe(false);
     p.pilot = {
       status: "complete",
       resultingPlanVersionId: plan.planVersionId,
