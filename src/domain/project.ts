@@ -261,7 +261,7 @@ export function migrateProject(value: unknown): ProjectState {
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 7) {
+  if (raw.schemaVersion === 8) {
     const current = projectStateSchema.parse(raw) as ProjectState;
     return {
       ...current,
