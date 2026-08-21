@@ -1321,3 +1321,129 @@ h1 {
     border: 2px solid Highlight;
   }
 }
+.analysis-workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+.analysis-step-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+.analysis-step-list li {
+  border: 1px solid var(--border, currentColor);
+  padding: 0.65rem;
+}
+.analysis-step-list [aria-current="step"] {
+  border-width: 3px;
+  font-weight: 800;
+}
+.mira-analysis,
+.caption-preview {
+  border-inline-start: 4px solid #d7a947;
+  padding: 1rem;
+  background: rgba(215, 169, 71, 0.08);
+}
+.analysis-chart {
+  width: 100%;
+  min-height: 260px;
+  background: #faf8ef;
+  color: #142033;
+}
+.chart-axis {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+.chart-line {
+  stroke: #275d8c;
+  stroke-width: 3;
+}
+.series-1 {
+  stroke: #8a4b08;
+  stroke-dasharray: 9 5;
+}
+.series-2 {
+  stroke: #4a6751;
+  stroke-dasharray: 3 5;
+}
+.threshold-line {
+  stroke: #8b1d1d;
+  stroke-width: 2;
+  stroke-dasharray: 7 4;
+}
+.density-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.density-figure canvas {
+  width: 100%;
+  image-rendering: pixelated;
+  border: 1px solid currentColor;
+}
+.analysis-workspace table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.analysis-workspace th,
+.analysis-workspace td {
+  border: 1px solid var(--border, currentColor);
+  padding: 0.45rem;
+  text-align: right;
+}
+.analysis-workspace th:first-child {
+  text-align: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .analysis-workspace * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+.series-3 {
+  stroke: #6f3c78;
+  stroke-dasharray: 12 4 2 4;
+}
+.series-4 {
+  stroke: #16656b;
+  stroke-dasharray: 2 3;
+  stroke-width: 4;
+}
+.series-5 {
+  stroke: #7a2431;
+  stroke-dasharray: 14 5;
+  stroke-width: 2;
+}
+.series-marker {
+  fill: #faf8ef;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.marker-1,
+.marker-4 {
+  stroke-dasharray: 2 1;
+}
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: 0.75rem;
+}
+.table-scroll:focus {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+.table-scroll table {
+  min-width: 52rem;
+}
+.analysis-workspace pre {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.main-analysis-figure {
+  border: 3px solid var(--border, currentColor);
+  padding: 1rem;
+}
