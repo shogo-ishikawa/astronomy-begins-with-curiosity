@@ -1041,6 +1041,59 @@ h1 {
 .pilot select {
   max-width: 100%;
 }
+
+.execution section {
+  margin-block: 2rem;
+}
+.demo-banner {
+  border: 2px solid #d6a84b;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: rgba(214, 168, 75, 0.09);
+}
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.execution table {
+  width: 100%;
+  min-width: 38rem;
+  border-collapse: collapse;
+}
+.execution th,
+.execution td {
+  padding: 0.7rem;
+  border: 1px solid var(--border, #526079);
+  text-align: left;
+}
+.execution .match,
+.success-record {
+  font-weight: 700;
+}
+.record-grid {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.45fr) minmax(0, 1fr);
+  gap: 0.45rem 1rem;
+}
+.record-grid dt {
+  font-weight: 700;
+}
+.record-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.acquisition-button {
+  min-height: 44px;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .record-grid {
+    grid-template-columns: 1fr;
+  }
+  .record-grid dd {
+    margin-bottom: 0.65rem;
+  }
+}
 @media (max-width: 800px) {
   .density-comparison {
     grid-template-columns: minmax(0, 1fr);

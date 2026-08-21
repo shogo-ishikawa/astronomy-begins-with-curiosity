@@ -45,4 +45,11 @@ export const stageLearning = {
     outcome:
       "図から直接観察したことと、その理由についての解釈を分けて説明できます。",
   },
+  execution: {
+    purpose: "研究計画と一致するデータを選び、その来歴を記録します。",
+    reason:
+      "データ取得も研究上の判断であり、解析前に条件の一致を確かめる必要があるためです。",
+    outcome:
+      "取得と解析を区別し、選んだ結果パッケージの条件と来歴を説明できます。",
+  },
 } satisfies Record<string, StageLearningFrameContent>;

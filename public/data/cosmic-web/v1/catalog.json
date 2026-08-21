@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "demo-catalog-1.0.0",
+  "packages": [
+    {
+      "packageId": "L025_N016_demo_v1",
+      "boxSizeMpcOverH": 25,
+      "particleSide": 16,
+      "manifestPath": "L025_N016/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L025_N032_demo_v1",
+      "boxSizeMpcOverH": 25,
+      "particleSide": 32,
+      "manifestPath": "L025_N032/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L025_N064_demo_v1",
+      "boxSizeMpcOverH": 25,
+      "particleSide": 64,
+      "manifestPath": "L025_N064/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L050_N016_demo_v1",
+      "boxSizeMpcOverH": 50,
+      "particleSide": 16,
+      "manifestPath": "L050_N016/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L050_N032_demo_v1",
+      "boxSizeMpcOverH": 50,
+      "particleSide": 32,
+      "manifestPath": "L050_N032/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L050_N064_demo_v1",
+      "boxSizeMpcOverH": 50,
+      "particleSide": 64,
+      "manifestPath": "L050_N064/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L075_N016_demo_v1",
+      "boxSizeMpcOverH": 75,
+      "particleSide": 16,
+      "manifestPath": "L075_N016/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L075_N032_demo_v1",
+      "boxSizeMpcOverH": 75,
+      "particleSide": 32,
+      "manifestPath": "L075_N032/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L075_N064_demo_v1",
+      "boxSizeMpcOverH": 75,
+      "particleSide": 64,
+      "manifestPath": "L075_N064/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L100_N016_demo_v1",
+      "boxSizeMpcOverH": 100,
+      "particleSide": 16,
+      "manifestPath": "L100_N016/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L100_N032_demo_v1",
+      "boxSizeMpcOverH": 100,
+      "particleSide": 32,
+      "manifestPath": "L100_N032/manifest.json",
+      "provenanceKind": "demo-fixture"
+    },
+    {
+      "packageId": "L100_N064_demo_v1",
+      "boxSizeMpcOverH": 100,
+      "particleSide": 64,
+      "manifestPath": "L100_N064/manifest.json",
+      "provenanceKind": "demo-fixture"
+    }
+  ]
+}

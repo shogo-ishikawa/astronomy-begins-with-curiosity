@@ -36,13 +36,38 @@ describe("ProjectState", () => {
       delete old.prediction;
     }
     const migrated = migrateProject(old);
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.researchPlanDraft.contentId).toBe("research-plan-v1");
     expect(migrated.methodUnderstanding).toEqual({
       contentId: "method-understanding-v1",
       answers: [],
       completedAt: null,
     });
+  });
+  it("schema 6の旧ResultPackageをlegacy-unboundへ保全し、nullは維持する", () => {
+    const old = {
+      ...createEmptyProject(),
+      schemaVersion: 6,
+      resultPackage: {
+        packageId: "old",
+        dataVersion: "1",
+        provenance: {
+          kind: "demo-fixture",
+          generator: "g",
+          generatorVersion: "1",
+          dataVersion: "1",
+          createdAt: "2026-08-21T00:00:00.000Z",
+          notes: "",
+        },
+      },
+    };
+    expect(migrateProject(old).resultPackage).toMatchObject({
+      refKind: "legacy-unbound",
+      packageId: "old",
+    });
+    expect(
+      migrateProject({ ...old, resultPackage: null }).resultPackage,
+    ).toBeNull();
   });
 
   it("未知の将来版を拒否する", () => {

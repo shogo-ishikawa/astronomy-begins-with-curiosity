@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "packageId": "L075_N032_demo_v1",
+  "dataVersion": "demo-data-1.0.0",
+  "provenance": {
+    "kind": "demo-fixture",
+    "generator": "ABCs deterministic educational density fixture",
+    "generatorVersion": "1.0.0",
+    "createdAt": "2026-08-21T00:00:00.000Z",
+    "description": "教育用の合成結果です。CWSや実際のN体計算の結果ではありません。"
+  },
+  "simulation": {
+    "boxSizeMpcOverH": 75,
+    "boxSizeUnit": "h^-1 Mpc",
+    "particleSide": 32,
+    "particleCount": 32768,
+    "seed": 2483,
+    "zStart": 49,
+    "boundary": "periodic",
+    "physics": "collisionless-dark-matter-only"
+  },
+  "cosmology": {
+    "status": "not-modeled",
+    "description": "この教育用fixtureは力学的な宇宙論計算を行わず、宇宙論パラメータを仮定していません。"
+  },
+  "grid": {
+    "projection": "xy",
+    "width": 128,
+    "height": 128,
+    "quantity": "rho_over_mean",
+    "arrayType": "Float32Array"
+  },
+  "payload": {
+    "kind": "generated-demo-fixture",
+    "fixtureId": "abcs-density-field",
+    "fixtureVersion": "1.0.0"
+  },
+  "snapshots": [
+    {
+      "id": "initial",
+      "redshift": 49,
+      "scaleFactor": 0.02
+    },
+    {
+      "id": "z10",
+      "redshift": 10,
+      "scaleFactor": 0.09090909090909091
+    },
+    {
+      "id": "z5",
+      "redshift": 5,
+      "scaleFactor": 0.16666666666666666
+    },
+    {
+      "id": "z2",
+      "redshift": 2,
+      "scaleFactor": 0.3333333333333333
+    },
+    {
+      "id": "z1",
+      "redshift": 1,
+      "scaleFactor": 0.5
+    },
+    {
+      "id": "z0",
+      "redshift": 0,
+      "scaleFactor": 1
+    }
+  ]
+}

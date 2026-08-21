@@ -3,6 +3,7 @@ import { emptyResearchPlanDraft } from "../features/planning/logic";
 import { legacyChoiceOrderSeed } from "./choiceOrder";
 import type { PlanReviewRecord, PlanVersion } from "../features/review/logic";
 import type { PilotRecord } from "../features/pilot/logic";
+import type { ResultPackageRef } from "../features/execution/logic";
 
 export const RESEARCH_STAGES = [
   "home",
@@ -64,7 +65,7 @@ export const methodUnderstandingSchema = z.object({
   answers: z.array(methodAnswerSchema),
   completedAt: z.string().datetime().nullable(),
 });
-const resultPackageSchema = z.object({
+const legacyResultPackageSchema = z.object({
   packageId: z.string(),
   dataVersion: z.string(),
   provenance: z.object({
@@ -76,6 +77,54 @@ const resultPackageSchema = z.object({
     notes: z.string(),
   }),
 });
+const resultPackageRefSchema = z.discriminatedUnion("refKind", [
+  z.object({
+    refKind: z.literal("legacy-unbound"),
+    packageId: z.string(),
+    dataVersion: z.string(),
+    provenance: z.unknown(),
+  }),
+  z.object({
+    refKind: z.literal("bound"),
+    refSchemaVersion: z.literal(1),
+    packageId: z.string(),
+    catalogVersion: z.string(),
+    manifestPath: z.string(),
+    dataVersion: z.string(),
+    planVersionId: z.string(),
+    planSubjectHash: z.string(),
+    requestFingerprint: z.string(),
+    acquisitionFingerprint: z.string(),
+    boxSizeMpcOverH: z.number(),
+    particleSide: z.number(),
+    requestedSnapshotIds: z.array(
+      z.enum(["initial", "z10", "z5", "z2", "z1", "z0"]),
+    ),
+    snapshotInventory: z.array(
+      z.object({
+        id: z.enum(["initial", "z10", "z5", "z2", "z1", "z0"]),
+        redshift: z.number(),
+        scaleFactor: z.number(),
+      }),
+    ),
+    grid: z.object({
+      projection: z.literal("xy"),
+      width: z.literal(128),
+      height: z.literal(128),
+      quantity: z.literal("rho_over_mean"),
+      arrayType: z.literal("Float32Array"),
+    }),
+    provenance: z.object({
+      kind: z.literal("demo-fixture"),
+      generator: z.string(),
+      generatorVersion: z.string(),
+      createdAt: z.string().datetime(),
+      description: z.string(),
+    }),
+    fixtureVersion: z.string(),
+    acquiredAt: z.string().datetime(),
+  }),
+]);
 export const miraMessageRecordSchema = z.object({
   messageId: z.string(),
   ruleId: z.string(),
@@ -97,7 +146,9 @@ const base = z.object({
   planVersions: z.array(z.unknown()),
   activePlanVersion: z.number().nullable(),
   pilot: z.unknown().nullable(),
-  resultPackage: resultPackageSchema.nullable(),
+  resultPackage: z
+    .union([resultPackageRefSchema, legacyResultPackageSchema])
+    .nullable(),
   qualityChecks: z.array(z.unknown()),
   analysisMode: z.enum(["gui", "python-assisted"]),
   analysisRecipe: z.unknown(),
@@ -153,7 +204,7 @@ const researchPlanDraftSchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export const projectStateSchema = base.extend({
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(7),
   researchQuestion: researchQuestionSchema.nullable(),
   hypothesis: hypothesisSchema.nullable(),
   prediction: predictionSchema.nullable(),
@@ -168,11 +219,12 @@ export const projectStateSchema = base.extend({
 });
 export type ProjectState = Omit<
   z.infer<typeof projectStateSchema>,
-  "planReviewHistory" | "planVersions"
+  "planReviewHistory" | "planVersions" | "resultPackage"
 > & {
   planReviewHistory: PlanReviewRecord[];
   planVersions: PlanVersion[];
   pilot: PilotRecord | null;
+  resultPackage: ResultPackageRef | null;
 };
 
 export function migrateProject(value: unknown): ProjectState {
@@ -190,15 +242,24 @@ export function migrateProject(value: unknown): ProjectState {
       planChangeReasonId: z.unknown().optional(),
     })
     .parse(value);
-  if (raw.schemaVersion > 6)
+  if (raw.schemaVersion > 7)
     throw new Error(
       "このプロジェクトは新しい版で作成されているため読み込めません。",
     );
-  if (raw.schemaVersion === 6)
+  if (raw.schemaVersion === 7)
     return projectStateSchema.parse(raw) as ProjectState;
   const migrated = projectStateSchema.parse({
     ...raw,
-    schemaVersion: 6,
+    schemaVersion: 7,
+    resultPackage:
+      raw.resultPackage && !("refKind" in raw.resultPackage)
+        ? {
+            refKind: "legacy-unbound",
+            packageId: raw.resultPackage.packageId,
+            dataVersion: raw.resultPackage.dataVersion,
+            provenance: raw.resultPackage.provenance,
+          }
+        : raw.resultPackage,
     researchQuestion: raw.schemaVersion < 2 ? null : raw.researchQuestion,
     hypothesis: raw.schemaVersion < 2 ? null : raw.hypothesis,
     prediction: raw.schemaVersion < 2 ? null : raw.prediction,
@@ -240,7 +301,7 @@ export function migrateProject(value: unknown): ProjectState {
 export function createEmptyProject(now = new Date()): ProjectState {
   const timestamp = now.toISOString();
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     projectId: crypto.randomUUID(),
     projectName: `新しい研究 ${now.toLocaleDateString("ja-JP")}`,
     appVersion: "0.1.0",
