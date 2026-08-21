@@ -10,6 +10,11 @@ import {
 import type { PlanVersion } from "../features/review/logic";
 import { methodContent } from "../content/ja/method/content";
 import { projectRepository } from "../persistence/projectRepository";
+import {
+  createAcquisitionRequest,
+  requestFingerprint,
+  type BoundResultPackageRef,
+} from "../features/execution/logic";
 import { App } from "./App";
 
 vi.mock("../persistence/projectRepository", () => ({
@@ -237,6 +242,126 @@ describe("ホーム", () => {
     expect(
       await screen.findByRole("heading", {
         name: "研究計画に合うデータを取得する",
+      }),
+    ).toBeVisible();
+  });
+
+  it("S08で取得済みの現行データからS09へ進み、再読込後も留まる", async () => {
+    const project = createEmptyProject();
+    const plan = {
+      planVersionId: "plan-quality-transition",
+      versionNumber: 1,
+      subjectHash: "subject-quality-transition",
+      subjectSnapshot: { draft: {} },
+      resolved: {
+        boxSizeMpcOverH: 50,
+        particleSide: 32,
+        totalParticles: 32768,
+        boxSizeUnit: "h^-1 Mpc",
+        snapshotIds: ["initial", "z10", "z2", "z0"],
+      },
+    } as PlanVersion;
+    const chosenAt = "2026-08-21T00:00:00.000Z";
+    project.currentStage = "execution";
+    project.motivation = { choiceId: "formation", note: "", chosenAt };
+    project.researchQuestion = {
+      choiceId: "growth",
+      measurementId: "sigma-delta",
+      timeFocusId: "history",
+      spaceFocusId: "balance",
+      alignment: { status: "aligned", acknowledged: true, reasonId: null },
+      note: "",
+      chosenAt,
+    };
+    project.hypothesis = { choiceId: "growth", note: "", chosenAt };
+    project.prediction = {
+      choiceId: "increase",
+      direction: "increase",
+      reasonId: "gravity",
+      alignment: { status: "aligned", acknowledged: true, reasonId: null },
+      note: "",
+      chosenAt,
+    };
+    project.methodUnderstanding.answers = methodContent.questions
+      .filter(({ required }) => required)
+      .map((question) => ({
+        questionId: question.id,
+        choiceId: question.correctChoiceId,
+        answeredAt: chosenAt,
+      }));
+    project.methodUnderstanding.completedAt = chosenAt;
+    project.researchPlanDraft.completedAt = chosenAt;
+    project.planVersions = [plan];
+    project.activePlanVersionId = plan.planVersionId;
+    project.planReviewCompletedAt = chosenAt;
+    project.pilot = {
+      status: "complete",
+      resultingPlanVersionId: plan.planVersionId,
+    } as never;
+    const request = createAcquisitionRequest(plan, project.themeId);
+    project.resultPackage = {
+      refKind: "bound",
+      refSchemaVersion: 1,
+      packageId: "demo-package",
+      catalogVersion: "catalog-1",
+      manifestPath: "L050_N032/manifest.json",
+      dataVersion: "1.0.0",
+      planVersionId: plan.planVersionId,
+      planSubjectHash: plan.subjectHash,
+      requestFingerprint: requestFingerprint(request),
+      acquisitionFingerprint: "acquisition-1",
+      boxSizeMpcOverH: 50,
+      particleSide: 32,
+      requestedSnapshotIds: request.snapshotIds,
+      snapshotInventory: request.snapshotIds.map((id) => ({
+        id,
+        redshift: id === "z0" ? 0 : 1,
+        scaleFactor: id === "z0" ? 1 : 0.5,
+      })),
+      grid: {
+        projection: "xy",
+        width: 128,
+        height: 128,
+        quantity: "rho_over_mean",
+        arrayType: "Float32Array",
+      },
+      provenance: {
+        kind: "demo-fixture",
+        generator: "test",
+        generatorVersion: "1",
+        createdAt: chosenAt,
+        description: "test fixture",
+      },
+      fixtureVersion: "1",
+      acquiredAt: chosenAt,
+    } satisfies BoundResultPackageRef;
+    savedProject = project;
+
+    const first = render(
+      <MemoryRouter initialEntries={[`/projects/${project.projectId}`]}>
+        <App />
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "取得したデータの品質を確かめる",
+      }),
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "S09 データ品質を証拠から確認する",
+      }),
+    ).toBeVisible();
+    first.unmount();
+
+    render(
+      <MemoryRouter initialEntries={[`/projects/${project.projectId}`]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "S09 データ品質を証拠から確認する",
       }),
     ).toBeVisible();
   });

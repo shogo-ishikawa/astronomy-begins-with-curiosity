@@ -4,6 +4,7 @@ import {
   canEnterAnalysisMode,
   qualityContextFingerprint,
 } from "../quality/logic";
+import { createAcquisitionRequest, localRefState } from "../execution/logic";
 const order = [
   "home",
   "invitation",
@@ -30,19 +31,27 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
   if (!project.pilot || project.pilot.status !== "complete") return "pilot";
   if (project.pilot.resultingPlanVersionId !== project.activePlanVersionId)
     return "pilot";
-  if (project.resultPackage?.refKind !== "bound") return "execution";
-  if (project.currentStage === "quality") return "quality";
-  if (project.currentStage === "analysis-mode") {
-    const ref = project.resultPackage;
-    if (
-      ref?.refKind === "bound" &&
-      canEnterAnalysisMode(project, qualityContextFingerprint(project, ref))
-        .canEnter
-    )
-      return "analysis-mode";
-    return "quality";
-  }
-  return "execution";
+  const plan = project.planVersions.find(
+    (candidate) => candidate.planVersionId === project.activePlanVersionId,
+  );
+  const ref = project.resultPackage;
+  if (
+    !plan ||
+    !ref ||
+    ref.refKind !== "bound" ||
+    localRefState(
+      ref,
+      project,
+      createAcquisitionRequest(plan, project.themeId),
+    ) !== "current-candidate"
+  )
+    return "execution";
+  if (
+    canEnterAnalysisMode(project, qualityContextFingerprint(project, ref))
+      .canEnter
+  )
+    return "analysis-mode";
+  return "quality";
 }
 export function guardStage(
   project: ProjectState,
