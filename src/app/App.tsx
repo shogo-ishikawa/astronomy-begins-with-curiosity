@@ -42,6 +42,7 @@ import { PilotStage } from "../features/pilot/PilotStage";
 import type { PilotRecord } from "../features/pilot/logic";
 import { ExecutionStage } from "../features/execution/ExecutionStage";
 import { QualityStage } from "../features/quality/QualityStage";
+import { AnalysisModeStage } from "../features/analysis/AnalysisModeStage";
 import {
   planCompletionMissing,
   updateDraft,
@@ -219,6 +220,7 @@ function ProjectWorkspace() {
               "pilot",
               "execution",
               "quality",
+              "analysis-mode",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -815,6 +817,19 @@ function ProjectWorkspace() {
               onGlossary={openGlossary}
               onSave={persist}
               onReacquire={() => goStage("execution")}
+              onStartAnalysis={() =>
+                void persist({
+                  ...project,
+                  currentStage: "analysis-mode",
+                  updatedAt: new Date().toISOString(),
+                })
+              }
+            />
+          ) : project.currentStage === "analysis-mode" ? (
+            <AnalysisModeStage
+              project={project}
+              onSave={persist}
+              onGlossary={openGlossary}
             />
           ) : (
             <Invitation

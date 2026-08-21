@@ -179,7 +179,7 @@ describe("pilot state compatibility", () => {
       planChangeReasonId: "preserved-reason",
     };
     const migrated = migrateProject(old);
-    expect(migrated.schemaVersion).toBe(8);
+    expect(migrated.schemaVersion).toBe(9);
     expect(migrated.choiceOrderSeed).toBe("preserved-seed");
     expect(migrated.planReviewCompletedAt).toBe("2026-08-20T12:00:00.000Z");
     expect(migrated.planChangeReasonId).toBe("preserved-reason");

@@ -1243,12 +1243,61 @@ h1 {
   font-weight: 700;
   text-decoration: underline;
 }
+.analysis-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  padding-inline-start: 1.5rem;
+}
+.analysis-stepper [aria-current="step"] {
+  font-weight: 800;
+  text-decoration: underline;
+}
+.analysis-flow {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border, currentColor);
+  line-height: 2;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.mode-grid legend {
+  grid-column: 1 / -1;
+}
+.mode-card {
+  min-height: 8rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-content: start;
+}
+.mode-card span {
+  grid-column: 1 / -1;
+}
+.mode-card input,
+.choice-row input {
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+}
+.mode-card:has(input:checked)::after {
+  content: "選択中";
+  grid-column: 1 / -1;
+  font-weight: 700;
+}
 @container (max-width: 520px) {
   .choice-grid {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 600px) {
+  .mode-grid {
+    grid-template-columns: 1fr;
+  }
   .stage-learning-frame dl {
     grid-template-columns: 1fr;
   }
