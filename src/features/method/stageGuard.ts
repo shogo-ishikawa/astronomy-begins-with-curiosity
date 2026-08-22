@@ -6,6 +6,7 @@ import {
 } from "../quality/logic";
 import { createAcquisitionRequest, localRefState } from "../execution/logic";
 import { canEnterAnalysis } from "../analysis/logic";
+import { canEnterInterpretation } from "../interpretation/logic";
 const order = [
   "home",
   "invitation",
@@ -19,6 +20,7 @@ const order = [
   "quality",
   "analysis-mode",
   "analysis",
+  "interpretation",
 ] as const;
 export type ImplementedStage = (typeof order)[number];
 export function firstAvailableStage(project: ProjectState): ImplementedStage {
@@ -51,8 +53,12 @@ export function firstAvailableStage(project: ProjectState): ImplementedStage {
   if (
     canEnterAnalysisMode(project, qualityContextFingerprint(project, ref))
       .canEnter
-  )
-    return canEnterAnalysis(project).canEnter ? "analysis" : "analysis-mode";
+  ) {
+    if (!canEnterAnalysis(project).canEnter) return "analysis-mode";
+    return canEnterInterpretation(project).canEnter
+      ? "interpretation"
+      : "analysis";
+  }
   return "quality";
 }
 export function guardStage(
@@ -81,6 +87,7 @@ export function guardReason(stage: ImplementedStage) {
     quality: "証拠に基づくデータ品質確認",
     "analysis-mode": "解析レシピの設計",
     analysis: "現行の解析レシピに基づく解析",
+    interpretation: "証拠に基づく結果の解釈",
   };
   return `先へ進む前に、${labels[stage]}を完了しましょう。既存の回答は残っています。`;
 }

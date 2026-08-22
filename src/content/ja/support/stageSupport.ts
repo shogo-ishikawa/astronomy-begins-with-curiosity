@@ -146,10 +146,10 @@ export const stageSupport: Record<ResearchStage, StageSupportContent> = {
     },
   },
   interpretation: common(
-    "図と解釈",
-    "図から直接読める結果と解釈を区別します。",
-    "この図だけでは何が言えませんか？",
-    ["density-contrast"],
+    "証拠に基づく解釈（S12）",
+    "私と、図から直接読める結果、物理的解釈、結論、限界を分けます。",
+    "この証拠はどの範囲の主張まで支えますか？",
+    ["evidence", "interpretation", "limitation"],
   ),
   paper: common(
     "ミニ論文",
