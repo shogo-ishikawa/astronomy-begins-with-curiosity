@@ -346,12 +346,14 @@ export function AnalysisStage({
   onBack,
   onReacquire,
   onGlossary,
+  onInterpret,
 }: {
   project: ProjectState;
   onSave: (project: ProjectState) => Promise<boolean>;
   onBack: () => void;
   onReacquire: () => void;
   onGlossary: (id: string) => void;
+  onInterpret: () => void;
 }) {
   const recipe = activeRecipe(project);
   const guard = canEnterAnalysis(project);
@@ -760,6 +762,9 @@ export function AnalysisStage({
             </li>
           ))}
         </ul>
+        <button className="primary" onClick={onInterpret}>
+          結果を解釈する
+        </button>
         <button
           className="primary"
           onClick={() => {

@@ -45,6 +45,7 @@ import { QualityStage } from "../features/quality/QualityStage";
 import { AnalysisModeStage } from "../features/analysis/AnalysisModeStage";
 import { AnalysisStage } from "../features/analysis/AnalysisStage";
 import { artifactRelation, isGuidedResult } from "../features/analysis/records";
+import { InterpretationStage } from "../features/interpretation/InterpretationStage";
 import {
   planCompletionMissing,
   updateDraft,
@@ -64,6 +65,8 @@ const formatDate = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 function progressLabel(project: ProjectState) {
+  if (project.currentStage === "interpretation")
+    return "証拠に基づく解釈を作成中";
   if (project.currentStage === "analysis") {
     const recipe = project.analysisRecipes.find(
       (x) => x.recipeId === project.activeAnalysisRecipeId,
@@ -238,6 +241,7 @@ function ProjectWorkspace() {
               "quality",
               "analysis-mode",
               "analysis",
+              "interpretation",
             ] as const
           ).includes(result.currentStage as ImplementedStage)
             ? (result.currentStage as ImplementedStage)
@@ -728,6 +732,13 @@ function ProjectWorkspace() {
               next={() => goStage("hypothesis")}
               onGlossary={openGlossary}
             />
+          ) : project.currentStage === "interpretation" ? (
+            <InterpretationStage
+              project={project}
+              onSave={persist}
+              onBack={() => goStage("analysis")}
+              onGlossary={openGlossary}
+            />
           ) : project.currentStage === "hypothesis" ? (
             <HypothesisStage
               project={project}
@@ -856,6 +867,7 @@ function ProjectWorkspace() {
               onBack={() => goStage("analysis-mode")}
               onReacquire={() => goStage("execution")}
               onGlossary={openGlossary}
+              onInterpret={() => goStage("interpretation")}
             />
           ) : (
             <Invitation
